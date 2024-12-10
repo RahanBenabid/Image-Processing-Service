@@ -50,3 +50,4 @@ tasks.json
 image-test/
 **/__pycache__
 
+**/image_test

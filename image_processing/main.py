@@ -7,12 +7,10 @@ from functions.crop import crop
 
 # response = requests.get("http://localhost:3000")
 
-imageUrl = "./image-test/image.jpg"
+imageUrl = "./image_test/image.jpg"
 
 with Image.open(imageUrl) as img:
 #	img = crop(img)
 	args={'width':0, 'height':40}
 	img = resize(img, **args)
 	img.show()
-	
-	
