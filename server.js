@@ -2,9 +2,10 @@ import express from "express";
 
 const app = express();
 const PORT = 3000;
-import cookieParser from "cookie-parser"
+import connectDB from "./config/database.js";
+import cookieParser from "cookie-parser";
+// connectDB();
 
-
-app.listen(3000, () => {
-	console.log("app is running and is listening to port 3000");
+app.listen(PORT, () => {
+	console.log(`app is running and is listening to port ${PORT}`);
 });

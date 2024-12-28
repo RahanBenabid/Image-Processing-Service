@@ -39,9 +39,7 @@ const verify = async (req, res, next) => {
 		}
 		
 		const user = await User.findById(decoded.id);
-		
-		const user = await User.findById(decoded.id);
-		
+
 		if (!user) {
 			return res
 			.status(401)
@@ -57,7 +55,7 @@ const verify = async (req, res, next) => {
 		res.status(500).json({
 			status: "error",
 			code: 500,
-			message; "Inernal Server Error",
+			message: "Inernal Server Error",
 		});
 	}
 };
