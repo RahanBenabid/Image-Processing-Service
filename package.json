@@ -10,7 +10,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "This project aims to be a free clone of the Cloudinary website, it uses `Node.js` for the handling requests and `Python`for processing images.",
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
@@ -21,5 +21,13 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RahanBenabid/Image-Processing-Service.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RahanBenabid/Image-Processing-Service/issues"
+  },
+  "homepage": "https://github.com/RahanBenabid/Image-Processing-Service#readme"
 }
