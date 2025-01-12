@@ -4,7 +4,7 @@ import processImage from './processing.controller.js';
 
 
 class PictureController {
-	getAllPictures = async (req, res, next) => {
+	async getAllPictures (req, res, next) {
 		try {
 			const pictures = await Picture.find({});
 			res.status(200).json(pictures);
@@ -13,7 +13,7 @@ class PictureController {
 		}
 	}
 	
-	getPictureById = async (req, res, next) => {
+	async getPictureById (req, res, next) {
 		try {
 			const pictureId = req.params.id;
 			const picture = await Picture.findOne({ _id: pictureId });
@@ -22,12 +22,15 @@ class PictureController {
 			return next(err);
 		}
 	}
+
+	// http://localhost:3000/hello/world
 	
-	createPictureRequest = async (req, res, next) => {
+	async createPictureRequest (req, res, next) {
 		try {
 			const {
 				path,
 				filename,
+				user_id,
 				changes,
 			} = req.body;
 			
@@ -41,7 +44,7 @@ class PictureController {
 			//	const decoded = jwt.verify(token, PROCESS.ENV.TOKEN_SECRET);
 			//	const user_id = decoded.user_id;
 			
-			user_id = "64b9cbb9655f1e1f1f8d9e9c";
+			// user_id = "64b9cbb9655f1e1f1f8d9e9c";
 			
 			const newPicture = Picture({
 				path: path,

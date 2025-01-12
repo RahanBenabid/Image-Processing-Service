@@ -14,8 +14,8 @@ const pictureSchema = new mongoose.Schema({
 	user_id: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
-		required: true,
-		allowNull: false,
+		required: false,
+		allowNull: true,
 	},
 	changes_made: {
 		type: mongoose.Schema.Types.Mixed,
@@ -25,4 +25,4 @@ const pictureSchema = new mongoose.Schema({
 
 const Picture = mongoose.model('Picture', pictureSchema);
 
-export default pictureSchema;
+export default Picture;
