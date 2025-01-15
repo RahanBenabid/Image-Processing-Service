@@ -1,5 +1,11 @@
 #!/bin/bash
 
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RESET='\033[0m'
+
+# ------
+
 # Function to check if the server is running
 check_server() {
   local host=$1
@@ -24,6 +30,8 @@ echo -e "\n"
 # ------
 
 # PICTURE TEST
+
+echo -e "${YELLOW}PICTURE TEST${RESET}"
 
 # Get all the picture models
 echo "Fetching all picture models..."
@@ -63,7 +71,7 @@ echo "Deleting the picture instance with id: $picture_id..."
 delete_picture_response=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:3000/api/pictures/$picture_id)
 
 if [[ "$delete_picture_response" -eq 204 ]]; then
-  echo "Successfully deleted the picture with _id: $picture_id (HTTP status: $delete_picture_response)"
+  echo -e "${GREEN}204 DELETED SUCCESSFULLY${RESET} for picture with _id: $picture_id (HTTP status: $delete_picture_response)"
 else
   echo "Failed to delete the picture with _id: $picture_id (HTTP status: $delete_picture_response)"
 fi
@@ -72,6 +80,8 @@ echo -e "\n"
 # ------
 
 # USER TEST
+
+echo -e "${YELLOW}USER TEST${RESET}"
 
 # Get all the user models
 echo "Fetching all user models..."
@@ -107,12 +117,31 @@ echo "Fetching details of the created user with _id: $user_id..."
 curl -s -X GET http://localhost:3000/api/users/$user_id
 echo -e "\n"
 
+# Login the user
+echo "Login the user with the id: $user_id"
+json=$(curl -s -X POST http://localhost:3000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+      "password": "0000",
+      "email": "nadimerahan@gmail.com"
+    }')
+token=$( jq -r ".token" <<<"$json" )
+echo "the returned json: $json"
+echo -e "\n"
+
+# Test the protected route
+echo "Fetching all user models in the protected route..."
+curl http://localhost:3000/api/users/protected -k -X GET \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $token"
+echo -e "\n"
+
 # Delete the created user instance
 echo "Deleting the user instance with id: $user_id..."
 delete_user_response=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:3000/api/users/$user_id)
 
 if [[ "$delete_user_response" -eq 204 ]]; then
-  echo "Successfully deleted the user with _id: $user_id (HTTP status: $delete_user_response)"
+  echo -e "${GREEN}204 DELETED SUCCESSFULLY${RESET} for user with _id: $user_id (HTTP status: $delete_user_response)"
 else
   echo "Failed to delete the user with _id: $user_id (HTTP status: $delete_user_response)"
 fi
