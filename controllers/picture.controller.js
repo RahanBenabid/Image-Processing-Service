@@ -44,8 +44,6 @@ class PictureController {
 			//	const decoded = jwt.verify(token, PROCESS.ENV.TOKEN_SECRET);
 			//	const user_id = decoded.user_id;
 			
-			// user_id = "64b9cbb9655f1e1f1f8d9e9c";
-			
 			const newPicture = Picture({
 				path: path,
 				filename: filename,
@@ -55,6 +53,19 @@ class PictureController {
 			
 			const pictureRequest = await newPicture.save();
 			res.status(201).json({ message: "Image processed successully", request: pictureRequest });
+		} catch (err) {
+			return next(err);
+		}
+	}
+	
+	async deletePictureById (req, res, next) {
+		try {
+			const pictureId = req.params.id;
+			const result = await Picture.deleteOne({ _id: pictureId });
+			if (result.deleteCount === 0) {
+				return res.status(404).json({ message: "Picture not found" });
+			}
+ 			res.status(204).send();
 		} catch (err) {
 			return next(err);
 		}
