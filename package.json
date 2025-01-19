@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "This project aims to be a free clone of the Cloudinary website, it uses `Node.js` for the handling requests and `Python`for processing images.",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

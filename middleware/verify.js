@@ -59,3 +59,5 @@ const verify = async (req, res, next) => {
 		});
 	}
 };
+
+export { verify };

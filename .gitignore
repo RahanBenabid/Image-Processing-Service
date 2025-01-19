@@ -52,3 +52,6 @@ image-test/
 
 **/image_test
 *.paw
+response_get_all.json
+response_get_picture.json
+response_post.json
