@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Picture from './../models/picture.model.js';
-import processImage from './processing.controller.js';
+import { processImage } from './processing.controller.js';
 
 
 class PictureController {
@@ -27,11 +27,11 @@ class PictureController {
 	
 	async createPictureRequest (req, res, next) {
 		try {
-			const {
+			let {
 				path,
 				filename,
 				user_id,
-				changes,
+				changes_made,
 			} = req.body;
 			
 			/*
@@ -39,7 +39,7 @@ class PictureController {
 						get the watermark from the changes object, if the changes.watermark.add == true then look for the path or something like that
 			*/
 			
-			//	processImage(changes);
+			processImage(changes_made);
 			
 			//	const decoded = jwt.verify(token, PROCESS.ENV.TOKEN_SECRET);
 			//	const user_id = decoded.user_id;
@@ -48,7 +48,7 @@ class PictureController {
 				path: path,
 				filename: filename,
 				user_id: user_id,
-				changes: changes,
+				changes_made: changes_made,
 			});
 			
 			const pictureRequest = await newPicture.save();
@@ -80,24 +80,24 @@ TODO: add 	a route where it handles picture upload not just a simple HTTP reques
 
 POST /images/:id/transform
 {
-"transformations": {
-"resize": {
-"width": "number",
-"height": "number"
-},
-"crop": {
-"width": "number",
-"height": "number",
-"x": "number",
-"y": "number"
-},
-"rotate": "number",
-"format": "string",
-"filters": {
-"grayscale": "boolean",
-"sepia": "boolean"
-}
-}
+		"transformations": {
+			"resize": {
+				"width": "number",
+				"height": "number"
+			},
+			"crop": {
+				"width": "number",
+				"height": "number",
+				"x": "number",
+				"y": "number"
+			},
+			"rotate": "number",
+			"format": "string",
+			"filters": {
+				"grayscale": "boolean",
+				"sepia": "boolean"
+		}
+	}
 }
 
 */
