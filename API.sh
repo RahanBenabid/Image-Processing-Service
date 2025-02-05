@@ -72,7 +72,7 @@ echo -e "\n"
 # PROTECTED ROUTES
 
 echo "Fetching all user models in the protected route..."
-curl http://localhost:3000/api/users/protected -k -X GET \
+curl http://localhost:3000/api/users -k -X GET \
   -H "Authorization: Bearer $token" \
   -H "Content-Type: application/json"
 echo -e "\n"
@@ -103,12 +103,20 @@ echo "Creating a new picture instance..."
 response=$(curl -s -X POST http://localhost:3000/api/pictures \
   -H "Authorization: Bearer $token" \
   -H "Content-Type: application/json" \
-  -d '{
-    "path": "/images/photo.jpg",
-    "filename": "photo.jpg",
-    "user_id": "64b9cbb9655f1e1f1f8d9e9c",
-    "changes_made": [{"resize": {"width": 800, "height": 600}}, {"filter": "grayscale"}]
-  }')
+  -d "{
+    \"path\": \"/Users/RahanBen/Downloads/downloads/pfp.jpeg\",
+    \"filename\": \"pfp.jpg\",
+    \"user_id\": \"$user_id\",
+    \"changes_made\": [
+      {\"resize\": {\"width\": 800, \"height\": 600}},
+      {\"filters\": {\"thumbnail\": true, \"black_and_white\": true}},
+      {\"rotate\": 90},
+      {\"compress\": true}
+    ]
+  }")
+
+# Print response for debugging
+echo "Server response: $response"
 
 # Extract the `_id` value using jq for the picture
 picture_id=$(echo "$response" | jq -r '.request._id')
@@ -125,6 +133,11 @@ echo -e "\n"
 # Get details of the created picture instance
 echo "Fetching details of the created picture with _id: $picture_id..."
 curl -s -X GET http://localhost:3000/api/pictures/$picture_id -H "Authorization: Bearer $token"
+echo -e "\n"
+
+# Get all the pictures of a user
+echo "Getting all the pictures a user uploaded"
+curl -s -X GET http://localhost:3000/api/users/pictures -H "Authorization: Bearer $token"
 echo -e "\n"
 
 # Delete the created picture instance

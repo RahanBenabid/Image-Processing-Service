@@ -2,13 +2,13 @@ import path from "path";
 import { spawn } from "child_process";
 import { URL } from 'url';
 
-export const processImage = (changes) => {
+export const processImage = (changes, image_path) => {
    const changesJSON = JSON.stringify(changes);
    const currentDir = path.dirname(new URL(import.meta.url).pathname);
    const scriptPath = path.join(currentDir, '../image_processing/main.py');
 
    // Pass the JSON string as an argument
-   const pythonProcess = spawn('python3', [scriptPath, changesJSON]);
+   const pythonProcess = spawn('python3', [scriptPath, changesJSON, image_path]);
 
    pythonProcess.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);

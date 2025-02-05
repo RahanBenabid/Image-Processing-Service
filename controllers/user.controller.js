@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from './../models/user.model.js';
+import Picture from './../models/picture.model.js';
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -125,6 +126,23 @@ class UserController {
 			
 			res.status(200).json({ message: 'Login successfully', token });
 			
+		} catch (err) {
+			return next(err);
+		}
+	}
+	
+	async listAllImages(req, res, next) {
+		try {
+			const user_id = req.user.userId;
+			
+			const pictures = await Picture.find({
+				user_id: user_id,
+			});
+			
+			res.status(200).json({
+				success: true,
+				pictures: pictures,
+			});
 		} catch (err) {
 			return next(err);
 		}

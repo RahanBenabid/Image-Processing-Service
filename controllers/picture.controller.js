@@ -34,18 +34,14 @@ class PictureController {
 				changes_made,
 			} = req.body;
 			
-			const authHeader = req.headers['authorization']
-			const token = authHeader && authHeader.split(' ')[1]
+			const userId = req.user.userId;
 			
-			processImage(changes_made);
-			
-			const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-			const user_id = decoded.userId
+			processImage(changes_made, path);
 			
 			const newPicture = Picture({
 				path: path,
 				filename: filename,
-				user_id: user_id,
+				user_id: userId,
 				changes_made: changes_made,
 			});
 			
