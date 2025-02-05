@@ -82,9 +82,18 @@ class UserController {
 				email,
 			});
 			
-			await newUser.save();
+			const savedUser = await newUser.save();
 			
-			res.status(201).json({ message: 'User created successfully' });
+			const token = jwt.sign(
+				{
+					userId: savedUser._id,
+					username: savedUser.username
+				},
+				process.env.TOKEN_SECRET,
+				{ expiresIn: '1h' },
+			);
+			
+			res.status(201).json({ message: 'User created successfully', user: savedUser, token});
 		} catch (err) {
 			return next(err);
 		}

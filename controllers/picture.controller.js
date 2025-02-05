@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import Picture from './../models/picture.model.js';
 import { processImage } from './processing.controller.js';
+import dotenv from "dotenv";
 
+dotenv.config();
 
 class PictureController {
 	async getAllPictures (req, res, next) {
@@ -22,27 +25,22 @@ class PictureController {
 			return next(err);
 		}
 	}
-
-	// http://localhost:3000/hello/world
 	
 	async createPictureRequest (req, res, next) {
 		try {
 			let {
 				path,
 				filename,
-				user_id,
 				changes_made,
 			} = req.body;
 			
-			/*
-			TODO: decode the userId through the jwt
-						get the watermark from the changes object, if the changes.watermark.add == true then look for the path or something like that
-			*/
+			const authHeader = req.headers['authorization']
+			const token = authHeader && authHeader.split(' ')[1]
 			
 			processImage(changes_made);
 			
-			//	const decoded = jwt.verify(token, PROCESS.ENV.TOKEN_SECRET);
-			//	const user_id = decoded.user_id;
+			const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+			const user_id = decoded.userId
 			
 			const newPicture = Picture({
 				path: path,

@@ -16,50 +16,46 @@ from functions.flip import flip
 
 # response = requests.get("http://localhost:3000")
 
-# the image url get the path from where the process executes, be aware
-#imageUrl = "./image_test/image.jpg"
-#watermarlUrl = "./image_test/icon.jpg"
-
-#def main(imageUrl, watermarkUrl):
-#	with (
-#		Image.open(imageUrl) as img,
-#		Image.open(watermarkUrl) as watermark_img
-#	):
-#	# image processing here
-#	
-#	#	img = crop(img)
-#	
-#		args={'width':500}
-#		img = resize(img, **args)
-#	
-#	#	size = (500, 500)
-#	#	img = Filters.create_thumbnail(img, size)
-#	#	img = Filters.back_and_white(img)
-#	
-#	
-#	#	img = rotate(img, 90)
-#	
-#	#	img = watermark(img, watermark_img)
-#	
-#	#	img = converter(img, "GIF")
-#	
-#	#	img = compress(img)
-#	
-#		img = flip(img, "Horizontal")
-#	
-#		img.show() # be aware, this will turn it into a png
-#		
-#		# return img
-
-def main(changes):
+def process_image(changes):
 	print(f'got the request successfully: {changes}')
+	print(f'extracting from the json: {changes['resize']['height']}')
+	
+	# call the functions depending on what the JSON contrains
+	if 'resize' in changes:
+		print(f"i got it! {changes['resize']}")
+	if 'to' not in changes:
+		print("didn't get this one")
+				
+	
 	return
 
 if __name__ == "__main__":
 	if len(sys.argv) > 1:
 		changes = json.loads(sys.argv[1])
-		# Now you can use the changes object in your Python script
 		print(changes)
+		process_image(changes[0])
 	else:
 		print("No changes provided")
 	
+"""
+{
+		"transformations": {
+			"resize": {
+				"width": "number",
+				"height": "number"
+			},
+			"crop": {
+				"width": "number",
+				"height": "number",
+				"x": "number",
+				"y": "number"
+			},
+			"rotate": "number",
+			"format": "string",
+			"filters": {
+				"grayscale": "boolean",
+				"sepia": "boolean"
+		}
+	}
+}
+"""

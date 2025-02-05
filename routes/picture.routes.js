@@ -1,11 +1,13 @@
 import express from "express";
 import { PictureController } from "./../controllers/index.js";
+import authenticate from "./../middleware/authenticate.js";
 
 const router = express.Router();
 
-router.get("/", PictureController.getAllPictures);
-router.get("/:id", PictureController.getPictureById);
-router.post("/", PictureController.createPictureRequest);
-router.delete("/:id", PictureController.deletePictureById);
+// PROTECTED
+router.get("/", authenticate, PictureController.getAllPictures);
+router.get("/:id", authenticate, PictureController.getPictureById);
+router.post("/", authenticate, PictureController.createPictureRequest);
+router.delete("/:id", authenticate, PictureController.deletePictureById);
 
 export default router;

@@ -6,13 +6,14 @@ const router = express.Router();
 
 // PROTECTED
 router.get("/protected", authenticate, UserController.getAllUsers);
+router.get("/", authenticate ,UserController.getAllUsers);
+router.get("/:id", authenticate, UserController.getUserById);
+router.post("/", authenticate, UserController.createUser);
+router.delete("/:id", authenticate, UserController.deleteUserById);
 
-router.get("/", UserController.getAllUsers);
-router.get("/:id", UserController.getUserById);
-router.post("/", UserController.createUser);
+// NON PROTECTED
 router.post("/login", UserController.login);
 router.post("/register", UserController.register);
-router.delete("/:id", UserController.deleteUserById);
 
 
 export default router;
