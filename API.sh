@@ -151,9 +151,6 @@ else
 fi
 echo -e "\n"
 
-# ------
-
-
 # Delete the created user instance
 echo "Deleting the user instance with id: $user_id..."
 delete_user_response=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:3000/api/users/$user_id -H "Authorization: Bearer $token")

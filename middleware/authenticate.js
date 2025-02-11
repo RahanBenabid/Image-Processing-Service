@@ -18,3 +18,8 @@ const authenticate = (req, res, next) => {
 
 
 export default authenticate;
+
+
+/*
+  Use verify if you need to perform additional checks (e.g., user lookup in the database) and authenticate.js for simpler token validation.
+*/
