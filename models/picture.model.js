@@ -1,25 +1,29 @@
 import mongoose from 'mongoose';
 
 const pictureSchema = new mongoose.Schema({
-	path: {
-		type: String,
-		required: true,
-		allowNull: false,
-	},
-	filename: {
-		type: String,
-		required: true,
-		allowNull: false,
-	},
 	user_id: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
-		required: false,
-		allowNull: true,
+		required: true,
 	},
-	changes_made: {
-		type: mongoose.Schema.Types.Mixed,
-		default: [],
+	url: {
+		type: String,
+	},
+	metadata: {
+		fileName: String,
+		fileSize: Number,
+		format: String,
+		width: Number,
+		height: Number,
+	},
+	transformations: [{     // Reference to transformations
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'Transformation'
+	}]
+}, {
+	timestamps: {
+		createdAt: true,
+		updatedAt: false,
 	},
 });
 

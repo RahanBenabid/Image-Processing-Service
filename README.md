@@ -17,3 +17,4 @@ TODO:
 - [ ] ratelimit the upload, but don’t be as strict in other routes
 - [ ] upload picture with multer
 - [ ] logout functionality
+- [ ] should serve the transformed file in a public Url

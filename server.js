@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import connectDB from "./config/database.js";
 import routes from "./routes/index.js";
 import config from "./config/dotenv.js";
+import middlewares from "./middleware/index.js";
 
 const app = express();
 const PORT = config.port;
@@ -10,9 +11,8 @@ const PORT = config.port;
 // Connect to MongoDB
 connectDB();
 
-// Middleware
-app.use(express.json()); // For parsing JSON request bodies
-app.use(cookieParser());
+// Apply middleware
+middlewares(app);
 
 // Routes
 app.use("/", routes);
@@ -31,4 +31,4 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is live @ ${config.hostUrl}`);
-})
+});
