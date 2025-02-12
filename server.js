@@ -2,9 +2,10 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/database.js";
 import routes from "./routes/index.js";
+import config from "./config/dotenv.js";
 
 const app = express();
-const PORT = 3000;
+const PORT = config.port;
 
 // Connect to MongoDB
 connectDB();
@@ -29,5 +30,5 @@ app.use((err, req, res, next) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`App is running and listening on port ${PORT}`);
+  console.log(`Server is live @ ${config.hostUrl}`);
 })

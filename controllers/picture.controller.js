@@ -64,6 +64,14 @@ class PictureController {
 			return next(err);
 		}
 	}
+	
+	async uploadPicture (req, res, next) {
+		try {
+			
+		} catch (err) {
+			return next(err);
+		}
+	}
 }
 
 export default new PictureController();

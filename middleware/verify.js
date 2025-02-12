@@ -1,8 +1,8 @@
 import User from "./../models/user";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+import dotenv from "./../config/dotenv.js";
 
-dotenv.config();
+console.log(dotenv.tokenSecret)
 
 const verify = async (req, res, next) => {
 	try {
@@ -26,7 +26,7 @@ const verify = async (req, res, next) => {
 		let decoded;
 		
 		try {
-			decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+			decoded = jwt.verify(token, config.tokenSecret);
 		} catch (jwtError) {
 			if (jwtError.name === "TokenExpiredError") {
 				return res

@@ -12,6 +12,7 @@
   "license": "ISC",
   "description": "This project aims to be a free clone of the Cloudinary website, it uses `Node.js` for the handling requests and `Python`for processing images.",
   "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
@@ -19,11 +20,12 @@
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.8.4"
+    "mongoose": "^8.8.4",
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7",
-    "wrangler": "^3.108.0"
+    "nodemon": "^3.1.7"
   },
   "repository": {
     "type": "git",
