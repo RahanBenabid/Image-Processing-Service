@@ -29,8 +29,42 @@ export const saveImage = async (fileBuffer, fileName) => {
         
         console.log("Upload successful! Public URL:", urlData);
         return urlData;
-    } catch (error) {
-        console.error("Error:", error.message);
-        throw error;
+    } catch (err) {
+        console.err("err:", err.message);
+        throw err;
+    }
+}
+
+export const deleteImage = async (filePath) => {
+    
+    if (!filePath) {
+        throw new Error("File path is required");
+    }
+    
+    const supabase = createClient(
+        config.supabaseProjectUrl,
+        config.supabaseApiKey,
+        {
+            schema: 'public',
+            autoRefreshToken: true,
+            persistSession: true,
+            detectSessionUrl: false,
+        },
+    );
+    try {
+        
+        const { data, error } = await supabase.storage
+            .from('image-processing')
+            .remove([filePath])
+            
+        if (error) {
+            throw error;
+        }
+        
+        console.log("Picture deleted successfully!");
+        return { success: true }
+    } catch (err) {
+        console.err("err:", err.message);
+        throw err;
     }
 }

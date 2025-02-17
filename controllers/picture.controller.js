@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 import Picture from './../models/picture.model.js';
 import { processImage } from './processing.controller.js';
-import { saveImage } from "./supabase.js";
+import { saveImage, deleteImage } from "./supabase.js";
 
 const getMetadata = async (file) => {
 	const fileName = file.originalname;
@@ -34,7 +34,7 @@ class PictureController {
 		} catch (err) {
 			return next(err);
 		}
-	}
+	};
 	
 	async getPictureById (req, res, next) {
 		try {
@@ -44,46 +44,68 @@ class PictureController {
 		} catch (err) {
 			return next(err);
 		}
-	}
+	};
 	
-	async createPictureRequest (req, res, next) {
-		try {
-			let {
-				path,
-				filename,
-				changes_made,
-			} = req.body;
-			
-			const userId = req.user.userId;
-			
-			processImage(changes_made, path);
-			
-			const newPicture = Picture({
-				path: path,
-				filename: filename,
-				user_id: userId,
-				changes_made: changes_made,
-			});
-			
-			const pictureRequest = await newPicture.save();
-			res.status(201).json({ message: "Image processed successully", request: pictureRequest });
-		} catch (err) {
-			return next(err);
-		}
-	}
+//async createPictureRequest (req, res, next) {
+//	try {
+//		let {
+//			path,
+//			filename,
+//			changes_made,
+//		} = req.body;
+//		
+//		const userId = req.user.userId;
+//		
+//		processImage(changes_made, path);
+//		
+//		const newPicture = Picture({
+//			path: path,
+//			filename: filename,
+//			user_id: userId,
+//			changes_made: changes_made,
+//		});
+//		
+//		const pictureRequest = await newPicture.save();
+//		res.status(201).json({ message: "Image processed successully", request: pictureRequest });
+//	} catch (err) {
+//		return next(err);
+//	}
+//};
 	
 	async deletePictureById (req, res, next) {
 		try {
 			const pictureId = req.params.id;
+			
+			// delete from the cloud
+			const picture = await Picture.findById(pictureId);
+			
+			if (!picture)
+				return res.status(404).json({
+					message: "Picture not found"
+				});
+			
+			try {
+				const publicUrl = picture.url;
+				const path = publicUrl.split("/image-processing")[1];
+				await deleteImage(path);
+			} catch (cloudError) {
+				console.error("Cloud storage deletion failed:", cloudError);
+				return res.status(500).json({
+					message: "Failed to delete from cloud storage"
+				});
+			}
+
+			
+			// delete from the database
 			const result = await Picture.deleteOne({ _id: pictureId });
-			if (result.deleteCount === 0) {
+			if (result.deletedCount === 0) {
 				return res.status(404).json({ message: "Picture not found" });
 			}
  			res.status(204).send();
 		} catch (err) {
 			return next(err);
 		}
-	}
+	};
 	
 	async uploadPicture (req, res, next) {
 		try {
@@ -107,7 +129,7 @@ class PictureController {
 				
 				const picture_id = newPicture._id;
 				const file_name = `originals/${picture_id}.${metadata.format}`;
-				const urlData = saveImage(file.buffer ,file_name);
+				const urlData = await saveImage(file.buffer ,file_name);
 				
 				await Picture.updateOne(
 					{ _id: picture_id },
@@ -125,12 +147,35 @@ class PictureController {
 			return next(err);
 		}
 	};
+	
+	getPublicUrl = async (req, res, next) => {
+	try {
+		const pictureId = req.params.id;
+		console.log(pictureId)
+		const picture = await Picture.findById(pictureId);
+		
+		if (!picture)
+			return res.status(404).json({
+				message: "No matching picture found",
+			});
+		
+		console.log("data: ", picture.url);
+		return res.status(200).json({
+			success: true,
+			publicUrl: picture.url,
+		});
+	} catch (err) {
+		return next(err);
+	}
+	}
 }
 
 export default new PictureController();
 
 /*
-TODO: add 	a route where it handles picture upload not just a simple HTTP request
+TODO: add 	a route where it handles picture upload not just a simple HTTP request DONE
+	- delete the picture in the database too DONE
+	- get publicUrl from pic id
 
 
 POST /images/:id/transform

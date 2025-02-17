@@ -89,15 +89,32 @@ curl -s -X GET http://localhost:3000/api/users/$user_id \
 echo -e "\n"
 
 
+
+
+
+
 echo -e "\n${YELLOW}PICTURE TEST${RESET}"
 
-echo "uplading a picture in supabase..."
-curl -X POST http://localhost:3000/api/pictures/upload -H "Authorization: Bearer $token" \
+echo "uploading a picture in supabase..."
+response=$(curl -s -X POST http://localhost:3000/api/pictures/upload -H "Authorization: Bearer $token" \
   -H "Content-Type: multipart/form-data" \
-  -F "picture=@/Users/RahanBen/Downloads/downloads/pfp.jpeg"
+  -F "picture=@/Users/RahanBen/Downloads/downloads/pfp.jpeg")
+picture_id=$(echo "$response" | jq -r .uploaded)
+# Extract the `_id` value using jq for the user
+picture_id=$(echo "$response" | jq -r '.uploadedFiles[0].picture_id')
+echo "extracted picture id: $picture_id"
 echo -e "\n"
   
+# Delete the created picture instance
+echo "Deleting the picture instance with id: $picture_id..."
+delete_picture_response=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:3000/api/pictures/$picture_id -H "Authorization: Bearer $token")
 
+if [[ "$delete_picture_response" -eq 204 ]]; then
+  echo -e "${GREEN}204 DELETED SUCCESSFULLY${RESET} for picture with _id: $picture_id (HTTP status: $delete_picture_response)"
+else
+  echo "Failed to delete the picture with _id: $picture_id (HTTP status: $delete_picture_response)"
+fi
+echo -e "\n"
 
 # Delete the created user instance
 echo "Deleting the user instance with id: $user_id..."

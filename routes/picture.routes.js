@@ -6,6 +6,7 @@ import limiter from "./../middleware/rate.limit.js";
 const router = express.Router();
 
 // PROTECTED
+router.get("/getPublicUrl/:id", limiter, PictureController.getPublicUrl);
 router.get("/", authenticate, limiter, PictureController.getAllPictures);
 router.get("/:id", authenticate, limiter, PictureController.getPictureById);
 // router.post("/", authenticate, limiter, PictureController.createPictureRequest);

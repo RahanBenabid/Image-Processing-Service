@@ -15,6 +15,9 @@ CopyKeys:
 TODO:
 - [ ] make sure that only the admin can access certain routes
 - [ ] ratelimit the upload, but don’t be as strict in other routes
-- [ ] upload picture with multer
+- [x] upload picture with multer
 - [ ] logout functionality
 - [ ] should serve the transformed file in a public Url
+- [ ] when user is deleted, all his pics should be
+- [ ] when a user has pictures, he cannot be deleted
+- [ ] make sure the global error handler is working
