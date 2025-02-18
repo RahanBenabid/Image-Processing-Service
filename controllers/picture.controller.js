@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 import Picture from './../models/picture.model.js';
 import { processImage } from './processing.controller.js';
-import { saveImage, deleteImage } from "./supabase.js";
+import { saveImage, deleteImage, replaceImage } from "./supabase.js";
 
 const getMetadata = async (file) => {
 	const fileName = file.originalname;
@@ -39,6 +39,11 @@ class PictureController {
 	async getPictureById (req, res, next) {
 		try {
 			const pictureId = req.params.id;
+			
+			if (!pictureId || pictureId === "null" || pictureId === "undefined") {
+				return res.status(400).json({ message: "No valid picture ID provided" });
+			}
+			
 			const picture = await Picture.findOne({ _id: pictureId });
 			res.status(200).json({ picture: picture });
 		} catch (err) {
@@ -46,62 +51,44 @@ class PictureController {
 		}
 	};
 	
-//async createPictureRequest (req, res, next) {
-//	try {
-//		let {
-//			path,
-//			filename,
-//			changes_made,
-//		} = req.body;
-//		
-//		const userId = req.user.userId;
-//		
-//		processImage(changes_made, path);
-//		
-//		const newPicture = Picture({
-//			path: path,
-//			filename: filename,
-//			user_id: userId,
-//			changes_made: changes_made,
-//		});
-//		
-//		const pictureRequest = await newPicture.save();
-//		res.status(201).json({ message: "Image processed successully", request: pictureRequest });
-//	} catch (err) {
-//		return next(err);
-//	}
-//};
-	
 	async deletePictureById (req, res, next) {
 		try {
 			const pictureId = req.params.id;
 			
+			if (!pictureId || pictureId === "null" || pictureId === "undefined") {
+				return res.status(400).json({ message: "No valid picture ID provided" });
+			}
+			
 			// delete from the cloud
 			const picture = await Picture.findById(pictureId);
 			
-			if (!picture)
+			if (!picture) {
 				return res.status(404).json({
 					message: "Picture not found"
 				});
+			}
 			
 			try {
 				const publicUrl = picture.url;
-				const path = publicUrl.split("/image-processing")[1];
-				await deleteImage(path);
+				const path = publicUrl.split("/image-processing/")[1].replace(/^\//, '');
+				const result = await deleteImage(path);
+				
+				if (!result.success) {
+					throw new Error("Failed to delete from storage");
+				}
 			} catch (cloudError) {
 				console.error("Cloud storage deletion failed:", cloudError);
 				return res.status(500).json({
 					message: "Failed to delete from cloud storage"
 				});
 			}
-
 			
-			// delete from the database
+			// delete from MongoDB
 			const result = await Picture.deleteOne({ _id: pictureId });
 			if (result.deletedCount === 0) {
 				return res.status(404).json({ message: "Picture not found" });
 			}
- 			res.status(204).send();
+			res.status(204).send();
 		} catch (err) {
 			return next(err);
 		}
@@ -149,25 +136,71 @@ class PictureController {
 	};
 	
 	getPublicUrl = async (req, res, next) => {
-	try {
-		const pictureId = req.params.id;
-		console.log(pictureId)
-		const picture = await Picture.findById(pictureId);
-		
-		if (!picture)
-			return res.status(404).json({
-				message: "No matching picture found",
+		try {
+			const pictureId = req.params.id;
+			const picture = await Picture.findById(pictureId);
+			
+			if (!picture)
+				return res.status(404).json({
+					message: "No matching picture found",
+				});
+			
+			return res.status(200).json({
+				success: true,
+				publicUrl: picture.url,
 			});
-		
-		console.log("data: ", picture.url);
-		return res.status(200).json({
-			success: true,
-			publicUrl: picture.url,
-		});
-	} catch (err) {
-		return next(err);
+		} catch (err) {
+			return next(err);
+		}
+	};
+	
+	updatePictureById = async (req, res, next) => {
+		try {
+			if (!req.files || req.files.length !== 1) {
+				return res.status(400).json({ error: "error in file upload" });
+			}
+			
+			let metadata = null
+			
+			const pictureId = req.params.id;
+			
+			if (!pictureId || pictureId === "null" || pictureId === "undefined") {
+				return res.status(400).json({ message: "No valid picture ID provided" });
+			}
+			
+			const picture = await Picture.findById(pictureId);
+			if (!picture)
+				return res.status(404).json({ error: "picture not found" });
+			
+			// update in the cloud
+			try {
+				const file = req.files[0];
+				const fileBuffer = await file.buffer;
+				const publicUrl = picture.url;
+				const filePath = publicUrl.split("/image-processing")[1];
+				
+				metadata = await getMetadata(file);
+				await replaceImage(filePath, fileBuffer);
+			} catch (err) {
+				console.error("Cloud error, couldn't update the picture: ", err.message);
+				return res.status(500).json({
+					message: "Failed to update from cloud storage"
+				});
+			}
+			
+			// update in the database
+			const updatedPicture = await Picture.findOneAndUpdate(
+				{ _id: pictureId },
+				{ metadata: metadata },
+				{ new: true },
+			);
+			
+			return res.status(204).send();
+		} catch (err) {
+			return next(err);
+		}
 	}
-	}
+
 }
 
 export default new PictureController();
@@ -175,7 +208,8 @@ export default new PictureController();
 /*
 TODO: add 	a route where it handles picture upload not just a simple HTTP request DONE
 	- delete the picture in the database too DONE
-	- get publicUrl from pic id
+	- get publicUrl from pic id DONE
+	- Update picture using ID
 
 
 POST /images/:id/transform

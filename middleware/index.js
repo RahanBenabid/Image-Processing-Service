@@ -14,4 +14,5 @@ export default (app) => {
   // Apply multer middleware to specific routes that need file upload
   // Instead of applying globally, attach to specific routes
   app.post("/api/pictures/upload", uploadMiddleware);
+  app.put("/api/pictures/:id", uploadMiddleware);
 };
