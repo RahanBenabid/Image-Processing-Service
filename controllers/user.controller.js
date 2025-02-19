@@ -53,6 +53,41 @@ class UserController {
 		}
 	}
 	
+	async updateUserById (req, res, next) {
+		try {
+			const userId = req.params.id;
+			
+			if (req.user.userId !== userId) {
+				return res.status(403).json({ message: "you can only update your own account" });
+			}
+			
+			const {
+				email,
+				username,
+			} = req.body;
+			
+			const  data = {};
+			if (email) data.email = email;
+			if (username) data.username = username;
+			
+			const result = await User.findOneAndUpdate(
+				{ _id: userId },
+				{ $set: data },
+				{ new: true, runValidators: true }
+			);
+			
+			if (!result)
+				return res.status(404).json({ message: "User not found" });
+			
+			res.status(200).json({
+				message: "User updated successfully",
+				user: result
+			});
+		} catch (err) {
+			return next(err);
+		}
+	}
+	
 	async deleteUserById (req, res, next) {
 		try {
 			const userId = req.params.id;

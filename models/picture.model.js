@@ -5,9 +5,17 @@ const pictureSchema = new mongoose.Schema({
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
 		required: true,
+		index: true,
 	},
 	url: {
 		type: String,
+		validate: {
+			validator: function(v) {
+				// Basic URL validation
+				return /^(http|https):\/\/[^ "]+$/.test(v);
+			},
+			message: 'URL format is invalid'
+		},
 	},
 	metadata: {
 		fileName: String,

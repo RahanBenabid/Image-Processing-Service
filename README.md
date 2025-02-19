@@ -20,4 +20,5 @@ TODO:
 - [ ] should serve the transformed file in a public Url
 - [ ] when user is deleted, all his pics should be
 - [ ] when a user has pictures, he cannot be deleted
-- [ ] make sure the global error handler is working
+- [ ] make sure the global error handler is working (better error handling, the current one is not working as intended
+- [ ] when updating, handle the image extension as needed, maybe use the python backend

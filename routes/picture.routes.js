@@ -1,7 +1,7 @@
 import express from "express";
 import { PictureController } from "./../controllers/index.js";
 import authenticate from "./../middleware/authenticate.js";
-import limiter from "./../middleware/rate.limit.js";
+import limiter from "./../middleware/rateLimit.js";
 
 const router = express.Router();
 

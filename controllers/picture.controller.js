@@ -3,8 +3,8 @@ import sharp from "sharp";
 import jwt from "jsonwebtoken";
 
 import Picture from './../models/picture.model.js';
-import { processImage } from './processing.controller.js';
-import { saveImage, deleteImage, replaceImage } from "./supabase.js";
+import { processImage } from './../handlers/imageProcessor.js';
+import { saveImage, deleteImage, replaceImage } from "./../handlers/supabase.js";
 
 const getMetadata = async (file) => {
 	const fileName = file.originalname;
