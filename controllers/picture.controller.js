@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import sharp from "sharp";
 import jwt from "jsonwebtoken";
 
@@ -46,49 +45,6 @@ class PictureController {
 			
 			const picture = await Picture.findOne({ _id: pictureId });
 			res.status(200).json({ picture: picture });
-		} catch (err) {
-			return next(err);
-		}
-	};
-	
-	async deletePictureById (req, res, next) {
-		try {
-			const pictureId = req.params.id;
-			
-			if (!pictureId || pictureId === "null" || pictureId === "undefined") {
-				return res.status(400).json({ message: "No valid picture ID provided" });
-			}
-			
-			// delete from the cloud
-			const picture = await Picture.findById(pictureId);
-			
-			if (!picture) {
-				return res.status(404).json({
-					message: "Picture not found"
-				});
-			}
-			
-			try {
-				const publicUrl = picture.url;
-				const path = publicUrl.split("/image-processing/")[1].replace(/^\//, '');
-				const result = await deleteImage(path);
-				
-				if (!result.success) {
-					throw new Error("Failed to delete from storage");
-				}
-			} catch (cloudError) {
-				console.error("Cloud storage deletion failed:", cloudError);
-				return res.status(500).json({
-					message: "Failed to delete from cloud storage"
-				});
-			}
-			
-			// delete from MongoDB
-			const result = await Picture.deleteOne({ _id: pictureId });
-			if (result.deletedCount === 0) {
-				return res.status(404).json({ message: "Picture not found" });
-			}
-			res.status(204).send();
 		} catch (err) {
 			return next(err);
 		}
@@ -199,8 +155,51 @@ class PictureController {
 		} catch (err) {
 			return next(err);
 		}
-	}
-
+	};
+	
+	async deletePictureById (req, res, next) {
+		try {
+			const pictureId = req.params.id;
+			
+			if (!pictureId || pictureId === "null" || pictureId === "undefined") {
+				return res.status(400).json({ message: "No valid picture ID provided" });
+			}
+			
+			// delete from the cloud
+			const picture = await Picture.findById(pictureId);
+			
+			if (!picture) {
+				return res.status(404).json({
+					message: "Picture not found"
+				});
+			}
+			
+			try {
+				const publicUrl = picture.url;
+				const path = publicUrl.split("/image-processing/")[1].replace(/^\//, '');
+				const result = await deleteImage(path);
+				
+				if (!result.success) {
+					throw new Error("Failed to delete from storage");
+				}
+			} catch (cloudError) {
+				console.error("Cloud storage deletion failed:", cloudError);
+				return res.status(500).json({
+					message: "Failed to delete from cloud storage"
+				});
+			}
+			
+			// delete from MongoDB
+			const result = await Picture.deleteOne({ _id: pictureId });
+			if (result.deletedCount === 0) {
+				return res.status(404).json({ message: "Picture not found" });
+			}
+			res.status(204).send();
+		} catch (err) {
+			return next(err);
+		}
+	};
+	
 }
 
 export default new PictureController();

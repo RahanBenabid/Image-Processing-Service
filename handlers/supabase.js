@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import config from "./../config/dotenv.js";
+import fs from "fs/promises";
 
 export const saveImage = async (fileBuffer, fileName) => {
     const supabase = createClient(
@@ -27,7 +28,6 @@ export const saveImage = async (fileBuffer, fileName) => {
             .from("image-processing")
             .getPublicUrl(fileName);
         
-        console.log("Upload successful! Public URL:", urlData);
         return urlData;
     } catch (err) {
         console.error("err:", err.message);
@@ -65,7 +65,6 @@ export const deleteImage = async (filePath) => {
             throw new Error("No deletion confirmation received from Supabase");
         }
         
-        console.log("Picture deleted successfully from Supabase!");
         return { success: true };
     } catch (err) {
         console.error("Deletion error:", err.message);
@@ -99,10 +98,36 @@ export const replaceImage = async (filePath, fileBuffer) => {
             throw error;
         }
         
-        console.log("Picture updated successfully!", data, error, filePath);
         return data;
     } catch (err) {
         console.error("err:", err.message);
         throw err;
     }
+}
+
+export const downloadImage = async (filePath) => {
+    const supabase = createClient(
+        config.supabaseProjectUrl,
+        config.supabaseApiKey
+    );
+    
+    try {
+        const { data, error } = await supabase.storage
+            .from('image-processing')
+            .download(filePath);
+        
+        if (error) {
+            throw error;
+        }
+        
+        const buffer = Buffer.from(await data.arrayBuffer());
+        const filename = filePath.split('/').pop();
+        await fs.writeFile(`/Users/RahanBen/Downloads/test/${filename}`, buffer);
+        
+        return;
+    } catch (err) {
+        console.error("err:", err);
+        throw err;
+    }
+    
 }
