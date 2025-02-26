@@ -6,10 +6,15 @@ export const processImage = (changes, image_buffer) => {
    const changesJSON = JSON.stringify(changes);
    const currentDir = path.dirname(new URL(import.meta.url).pathname);
    const scriptPath = path.join(currentDir, '../image_processing/main.py');
+   console.log("type: ", typeof(image_buffer));
 
-   // Pass the JSON string as an argument
-   const pythonProcess = spawn('python3', [scriptPath, changesJSON, image_buffer]);
-
+   const pythonProcess = spawn('python3', [scriptPath, changesJSON]);
+   
+   // write the binary buffer to stdin
+   pythonProcess.stdin.write(image_buffer);
+   pythonProcess.stdin.end();
+   
+   
    pythonProcess.stdout.on('data', (data) => {
       console.log(`stdout: ${data}`);
    });

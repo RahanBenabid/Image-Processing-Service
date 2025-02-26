@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 import sys
+import _testbuffer
 import json
+import io
 from PIL import Image
 
 from functions.resize import resize
@@ -68,11 +70,19 @@ def process_image(changes_list, path):
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         try:
+            # Get changes from first argument
             changes = json.loads(sys.argv[1])
-            path = sys.argv[2]
-            print(f'changes: {changes}, path: {path}')
-            output_path = process_image(changes, path)
-            # print(f"Processed image saved to: {output_path}")
+        
+            # Read image data from stdin as binary
+            image_data = sys.stdin.buffer.read()
+        
+            print(f'changes: {changes}, image type: {type(image_data)}')
+        
+            # Convert bytes to PIL Image
+            image = Image.open(io.BytesIO(image_data))
+        
+            image.show()
+                
         except json.JSONDecodeError:
             print("Invalid JSON provided")
             sys.exit(1)

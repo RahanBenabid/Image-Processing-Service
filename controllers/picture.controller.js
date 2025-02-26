@@ -72,7 +72,7 @@ class PictureController {
 				
 				const picture_id = newPicture._id;
 				const file_name = `originals/${picture_id}.${metadata.format}`;
-				const urlData = await saveImage(file.buffer ,file_name);
+				const urlData = await saveImage(file.buffer, file_name);
 				
 				await Picture.updateOne(
 					{ _id: picture_id },
@@ -91,7 +91,7 @@ class PictureController {
 		}
 	};
 	
-	getPublicUrl = async (req, res, next) => {
+	async getPublicUrl (req, res, next) {
 		try {
 			const pictureId = req.params.id;
 			const picture = await Picture.findById(pictureId);
@@ -110,7 +110,7 @@ class PictureController {
 		}
 	};
 	
-	updatePictureById = async (req, res, next) => {
+	async updatePictureById (req, res, next) {
 		try {
 			if (!req.files || req.files.length !== 1) {
 				return res.status(400).json({ error: "error in file upload" });

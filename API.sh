@@ -108,7 +108,12 @@ echo -e "\n"
 
 
 echo "Getting the transformation shit..."
-curl -s -X GET http://localhost:3000/api/images/67b61459f4d6322eefb4018f/transform
+curl -s -X GET http://localhost:3000/api/images/67b61459f4d6322eefb4018f/transform \
+  --header "Content-Type: application/json" \
+  --data '{
+    "width": "100",
+    "height": "100"
+  }'
 echo -e "\n"
 
 

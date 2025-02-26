@@ -88,16 +88,16 @@ curl -s -X GET http://localhost:3000/api/users/$user_id \
   -H "Authorization: Bearer $token"
 echo -e "\n"
 
-# Update user using id
-echo "Updating the user with the id $user_id"
-curl -s -X PUT http://localhost:3000/api/users/$user_id \
--H "Authorization: Bearer $token" \
--H "Content-Type: application/json" \
--d '{
-    "username": "rahan",
-    "email": "rahannadime@gmail.com"
-  }'
-echo -e "\n"
+## Update user using id
+#echo "Updating the user with the id $user_id"
+#curl -s -X PUT http://localhost:3000/api/users/$user_id \
+#-H "Authorization: Bearer $token" \
+#-H "Content-Type: application/json" \
+#-d '{
+#   "username": "rahan",
+#   "email": "rahannadime@gmail.com"
+# }'
+#echo -e "\n"
 
 
 
