@@ -36,10 +36,10 @@ app.use((err, req, res, next) => {
   }
   
   // Default 500 error
-  res.status(500).json({ 
-    success: false, 
-    message: "Something went wrong", 
-    error: process.env.NODE_ENV === 'production' ? 'Internal server error' : err.message 
+  res.status(500).json({
+    success: false,
+    message: "Something went wrong",
+    error: err
   });
 });
 

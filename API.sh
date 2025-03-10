@@ -10,8 +10,8 @@ RESET='\033[0m'
 check_server() {
   local host=$1
   local port=$2
-  
-  # Using netcat to see if the port is open
+
+  # Using netcat to see if the p ort is open
   nc -z "$host" "$port" > /dev/null 2>&1
   if [[ $? -ne 0 ]]; then
     echo "Error: Server is not running on $host:$port. Exiting."

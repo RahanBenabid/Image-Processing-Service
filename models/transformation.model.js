@@ -1,27 +1,30 @@
 import mongoose from "mongoose";
 
-const transformationSchema = new mongoose.Schema({
+const transformationSchema = new mongoose.Schema(
+  {
     image_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Picture',
-        required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Picture",
+      required: true,
     },
     params: {
-        type: mongoose.Schema.Types.Mixed,
-        default: [],
+      type: mongoose.Schema.Types.Mixed,
+      default: [],
     },
     url: {
-        type: String,
-        required: true,
-        allowNull: false,
+      type: String,
+      required: true,
+      allowNull: false,
     },
-}, {
+  },
+  {
     timestamps: {
-        createAt: true,
-        updatedAt: false,
+      createAt: true,
+      updatedAt: false,
     },
-});
+  },
+);
 
-const Transformation = mongoose.model('Transformation', transformationSchema);
+const Transformation = mongoose.model("Transformation", transformationSchema);
 
 export default Transformation;

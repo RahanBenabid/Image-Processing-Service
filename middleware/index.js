@@ -4,7 +4,7 @@ import uploadMiddleware from "./upload.js";
 export default (app) => {
   // parse incoming JSON requests
   app.use(express.json());
-  
+
   // Middleware to parse URL-encoded bodies
   app.use(express.urlencoded({ extended: true }));
 

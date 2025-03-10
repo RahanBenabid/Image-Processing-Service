@@ -10,7 +10,7 @@ RESET='\033[0m'
 check_server() {
   local host=$1
   local port=$2
-  
+
   # Using netcat to see if the port is open
   nc -z "$host" "$port" > /dev/null 2>&1
   if [[ $? -ne 0 ]]; then
@@ -131,7 +131,8 @@ else
   echo "Failed to update the picture with _id: $picture_id (HTTP status: $update_picture_response)"
 fi
 echo -e "\n"
-  
+
+
 # Delete the created picture instance
 echo "Deleting the picture instance with id: $picture_id..."
 delete_picture_response=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE http://localhost:3000/api/pictures/$picture_id -H "Authorization: Bearer $token")
