@@ -3,6 +3,6 @@ import { TransformationController } from "./../controllers/index.js";
 
 const router = express.Router();
 
-router.get("/:id/transform", TransformationController.tranformImage);
+router.post("/:id/transform", TransformationController.transformImage);
 
 export default router;

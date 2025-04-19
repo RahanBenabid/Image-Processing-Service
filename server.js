@@ -25,21 +25,21 @@ app.use((req, res) => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  
+
   // Handle MongoDB/Mongoose errors
-  if (err.name === 'ValidationError' || err.name === 'CastError') {
-    return res.status(400).json({ 
-      success: false, 
-      message: "Invalid data provided", 
-      error: err.message 
+  if (err.name === "ValidationError" || err.name === "CastError") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid data provided",
+      error: err.message,
     });
   }
-  
+
   // Default 500 error
   res.status(500).json({
     success: false,
     message: "Something went wrong",
-    error: err
+    error: err,
   });
 });
 

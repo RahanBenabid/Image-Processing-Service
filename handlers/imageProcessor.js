@@ -1,30 +1,44 @@
 import path from "path";
 import { spawn } from "child_process";
-import { URL } from "url";
+import { URL, fileURLToPath } from "url";
 
-export const processImage = (changes, image_buffer) => {
-  const changesJSON = JSON.stringify(changes);
-  const currentDir = path.dirname(new URL(import.meta.url).pathname);
-  const scriptPath = path.join(currentDir, "../image_processing/main.py");
-  console.log("type: ", typeof image_buffer);
+export const processImage = (imageBuffer, changes) => {
+  return new Promise((resolve, reject) => {
+    const changesJSON = JSON.stringify(changes);
 
-  const pythonProcess = spawn("python3", [scriptPath, changesJSON]);
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    const scriptPath = path.join(currentDir, "../image_processing/main.py");
 
-  // write the binary buffer to stdin
-  pythonProcess.stdin.write(image_buffer);
-  pythonProcess.stdin.end();
+    const pythonProcess = spawn("python3", [scriptPath, changesJSON]);
 
-  pythonProcess.stdout.on("data", (data) => {
-    console.log(`stdout: ${data}`);
-  });
+    // Send image buffer to Python script via stdin
+    pythonProcess.stdin.write(imageBuffer);
+    pythonProcess.stdin.end();
 
-  // handle any errors from the Python script
-  pythonProcess.stderr.on("data", (data) => {
-    console.error(`stderr: ${data}`);
-  });
+    const chunks = [];
 
-  // handle the process closing
-  pythonProcess.on("close", (code) => {
-    console.log(`Python script finished with exit code ${code}`);
+    // Collect image binary data from stdout
+    pythonProcess.stdout.on("data", (chunk) => {
+      chunks.push(chunk);
+    });
+
+    pythonProcess.stdout.on("end", () => {
+      const buffer = Buffer.concat(chunks);
+      resolve(buffer); // This buffer is the transformed image
+    });
+
+    pythonProcess.stderr.on("data", (data) => {
+      console.error(`Python stderr: ${data}`);
+    });
+
+    pythonProcess.on("error", (err) => {
+      reject(err);
+    });
+
+    pythonProcess.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`Python process exited with code ${code}`));
+      }
+    });
   });
 };
