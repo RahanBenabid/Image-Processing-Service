@@ -89,15 +89,15 @@ curl -s -X GET http://localhost:3000/api/users/$user_id \
 echo -e "\n"
 
 # Update user using id
-#echo "Updating the user with the id $user_id"
-#curl -s -X PUT http://localhost:3000/api/users/$user_id \
-# -H "Authorization: Bearer $token" \
-# -H "Content-Type: application/json" \
-# -d '{
-#   "username": "rahan",
-#   "email": "rahannadime@gmail.com"
-# }'
-#echo -e "\n"
+echo "Updating the user with the id $user_id"
+curl -s -X PUT http://localhost:3000/api/users/$user_id \
+-H "Authorization: Bearer $token" \
+-H "Content-Type: application/json" \
+-d '{
+    "username": "rahan",
+    "email": "rahannadime@gmail.com"
+  }'
+echo -e "\n"
 
 # Get again details of the created user instance
 echo "Fetching details of the created user with _id: $user_id..."
@@ -106,7 +106,7 @@ curl -s -X GET http://localhost:3000/api/users/$user_id \
 echo -e "\n"
 
 echo "Getting the transformation shit..."
-curl -X POST http://localhost:3000/api/images/67b61459f4d6322eefb4018f/transform \
+curl -X POST http://localhost:3000/api/images/6806571e9980c54be72c6a48/transform \
   --header "Content-Type: application/json" \
   --data '{
   "resize": {

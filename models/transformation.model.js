@@ -13,7 +13,7 @@ const transformationSchema = new mongoose.Schema(
     },
     url: {
       type: String,
-      required: true,
+      required: false,
       allowNull: false,
     },
   },

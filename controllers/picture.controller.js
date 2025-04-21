@@ -218,9 +218,9 @@ export default new PictureController();
 
 /*
 TODO: add 	a route where it handles picture upload not just a simple HTTP request DONE
-	- delete the picture in the database too DONE
-	- get publicUrl from pic id DONE
-	- Update picture using ID
+  - delete the picture in the database too DONE
+  - get publicUrl from pic id DONE
+  - Update picture using ID DONE
 
 
 POST /images/:id/transform

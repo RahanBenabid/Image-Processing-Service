@@ -14,8 +14,8 @@ connectDB();
 // Apply middleware
 middlewares(app);
 
-// Routes
 app.use("/", routes);
+// Routes
 
 // 404 Handler
 app.use((req, res) => {

@@ -67,8 +67,6 @@ if __name__ == "__main__":
       # Read image data from stdin as binary
       image_data = sys.stdin.buffer.read()
       
-      # print(f'changes: {changes}, image type: {type(image_data)}')
-      
       # Convert bytes to PIL Image
       image = Image.open(io.BytesIO(image_data))
       
