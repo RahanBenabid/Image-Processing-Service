@@ -1,5 +1,6 @@
 import express from "express";
 import uploadMiddleware from "./upload.js";
+import cors from "cors";
 
 export default (app) => {
   // parse incoming JSON requests
@@ -10,6 +11,15 @@ export default (app) => {
 
   // Disable the 'X-Powered-By' header to improve security
   app.disable("x-powered-by");
+
+  // activate cross origins
+  const corsOptions = {
+    origin: "http://localhost:5173", // Allow only requests from this origin
+    methods: "GET,POST", // Allow only these methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow only these headers
+  };
+
+  app.use(cors(corsOptions));
 
   // Apply multer middleware to specific routes that need file upload
   // Instead of applying globally, attach to specific routes

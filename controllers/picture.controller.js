@@ -24,7 +24,7 @@ const getMetadata = async (file) => {
       height: metadata.height,
     };
   } catch (err) {
-    console.error("failed to read image dimentions:", err);
+    console.error("failed to read image dimensions:", err);
     throw err;
   }
 };
@@ -49,7 +49,7 @@ class PictureController {
           .json({ message: "No valid picture ID provided" });
       }
 
-      const picture = await Picture.findOne({ _id: pictureId });
+      const picture = await Picture.findById(pictureId);
       res.status(200).json({ picture: picture });
     } catch (err) {
       return next(err);

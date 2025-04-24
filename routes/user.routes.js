@@ -7,6 +7,7 @@ const router = express.Router();
 
 // PROTECTED
 router.get("/pictures", authenticate, UserController.listAllImages);
+router.get("/:id/pictures", authenticate, UserController.listUserPictures);
 router.get("/", authenticate, UserController.getAllUsers);
 router.get("/:id", authenticate, UserController.getUserById);
 router.put("/:id", authenticate, UserController.updateUserById);

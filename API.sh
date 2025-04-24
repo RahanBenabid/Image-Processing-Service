@@ -105,6 +105,12 @@ curl -s -X GET http://localhost:3000/api/users/$user_id \
 -H "Authorization: Bearer $token"
 echo -e "\n"
 
+echo "Fetching user pictures..."
+curl http://localhost:3000/api/users/$user_id/pictures \
+-H "Authorization: Bearer $token" \
+-H "Content-Type: application/json"
+echo -e "\n"
+
 echo "Getting the transformation shit..."
 curl -X POST http://localhost:3000/api/images/6806571e9980c54be72c6a48/transform \
   --header "Content-Type: application/json" \

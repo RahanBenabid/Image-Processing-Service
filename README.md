@@ -22,3 +22,8 @@ TODO:
 - [ ] when a user has pictures, he cannot be deleted
 - [ ] make sure the global error handler is working (better error handling, the current one is not working as intended
 - [ ] when updating, handle the image extension as needed, maybe use the python backend
+
+transformation controller
+- [ ] Replace fs.readFileSync with downloadImage in the .
+- [ ] Add validation for resize parameters in req.body.
+- [ ] Handle edge cases (e.g., invalid imageId, Supabase upload failures).
