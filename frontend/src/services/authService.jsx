@@ -1,42 +1,45 @@
-import api from './api';
+import api from "./api";
 
 const authService = {
   register: async ({ fullName, email, password }) => {
     try {
-      return await api.post('/api/users/register', {
+      console.log("looooog: ", fullName, email, password);
+      const response = await api.post("/api/users/register", {
         username: fullName,
         email,
-        password
+        password,
       });
+      console.log("hi", response);
+      return response;
     } catch (error) {
-      console.error('Registration error:', error);
-      throw new Error(error.response?.data?.message || 'Failed to register');
+      console.error("Registration error:", error);
+      throw new Error(error.response?.data?.message || "Failed to register");
     }
   },
-  
 
   login: async (email, password) => {
     try {
-      const response = await api.post('/api/users/login', { email, password });
-      console.log('Auth service login response:', response);
-      
+      const response = await api.post("/api/users/login", { email, password });
+      console.log("Auth service login response:", response);
+
       return {
-        user: response.data.user,  
-        token: response.data.token 
+        user: response.user,
+        token: response.token,
       };
     } catch (error) {
-      console.error('Login error:', error);
-      throw new Error(error.response?.data?.message || 'Invalid credentials');
+      console.log("sexy log", email, password);
+      console.error("Login error:", error);
+      throw new Error(error.response?.data?.message || "Invalid credentials");
     }
   },
 
   verifyToken: async (token) => {
     try {
       api.setAuthToken(token);
-      return await api.get('/api/users/verify');
+      return await api.get("/api/users/verify");
     } catch (error) {
-      console.error('Token verification error:', error.message);
-      throw new Error('Session expired');
+      console.error("Token verification error:", error.message);
+      throw new Error("Session expired");
     }
   },
 
@@ -44,8 +47,8 @@ const authService = {
     try {
       return await api.put(`/api/users/${userId}`, userData);
     } catch (error) {
-      console.error('User update error:', error);
-      throw new Error(error.response?.data?.message || 'Update failed');
+      console.error("User update error:", error);
+      throw new Error(error.response?.data?.message || "Update failed");
     }
   },
 
@@ -53,10 +56,10 @@ const authService = {
     try {
       return await api.delete(`/api/users/${userId}`);
     } catch (error) {
-      console.error('User deletion error:', error);
-      throw new Error(error.response?.data?.message || 'Deletion failed');
+      console.error("User deletion error:", error);
+      throw new Error(error.response?.data?.message || "Deletion failed");
     }
-  }
+  },
 };
 
 export default authService;

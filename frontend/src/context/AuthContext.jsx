@@ -1,13 +1,13 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import authService from '../services/authService';
-import {jwtDecode} from 'jwt-decode';
-import api from '../services/api';
+import { createContext, useContext, useState, useEffect } from "react";
+import authService from "../services/authService";
+import { jwtDecode } from "jwt-decode";
+import api from "../services/api";
 
 const AuthContext = createContext();
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -19,25 +19,24 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (token) {
         try {
           const decoded = jwtDecode(token);
-          api.setAuthToken(token); 
-          setCurrentUser({ 
-            id: decoded.id, 
+          api.setAuthToken(token);
+          setCurrentUser({
+            id: decoded.id,
             email: decoded.email,
-           
           });
         } catch (err) {
           console.error("Token decoding error:", err);
-          localStorage.removeItem('token');
+          localStorage.removeItem("token");
           api.clearAuthToken();
         }
       }
       setLoading(false);
     };
-  
+
     initializeAuth();
   }, []);
 
@@ -46,26 +45,26 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const { user, token } = await authService.login(email, password);
-      
+
       if (!token) {
-        throw new Error('No token received');
+        throw new Error("No token received");
       }
-  
-      localStorage.setItem('token', token);
+
+      localStorage.setItem("token", token);
       api.setAuthToken(token);
-  
+
       const decoded = jwtDecode(token);
       const authenticatedUser = {
         id: decoded.id,
         email: decoded.email,
-        ...user 
+        ...user,
       };
-  
+
       setCurrentUser(authenticatedUser);
       return authenticatedUser;
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'Login failed');
+      console.error("Login error:", err);
+      setError(err.message || "Login failed");
       throw err;
     } finally {
       setLoading(false);
@@ -75,13 +74,15 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, email, password) => {
     setLoading(true);
     setError(null);
+    console.log("helloooo", username, email, password);
     try {
       const response = await authService.register(username, email, password);
       setCurrentUser(response.user);
-      localStorage.setItem('token', response.token);
+      localStorage.setItem("token", response.token);
+
       return response.user;
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      setError(err.message || "Registration failed");
       throw err;
     } finally {
       setLoading(false);
@@ -89,7 +90,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token'); 
+    localStorage.removeItem("token");
     api.clearAuthToken();
     setCurrentUser(null);
   };
@@ -99,10 +100,10 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const updatedUser = await authService.updateUser(userId, userData);
-      setCurrentUser(prev => ({ ...prev, ...updatedUser }));
+      setCurrentUser((prev) => ({ ...prev, ...updatedUser }));
       return updatedUser;
     } catch (err) {
-      setError(err.message || 'Update failed');
+      setError(err.message || "Update failed");
       throw err;
     } finally {
       setLoading(false);
@@ -117,13 +118,9 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateProfile,
-    getToken: () => localStorage.getItem('token'),
-    isAuthenticated: () => !!currentUser
+    getToken: () => localStorage.getItem("token"),
+    isAuthenticated: () => !!currentUser,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
