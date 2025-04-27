@@ -5,9 +5,10 @@ import imageService from "../services/imageService";
 import { benefits } from "../constants";
 import { Upload, Image as ImageIcon, Plus, X } from "lucide-react";
 import bgImage from "../assets/sign_inout/bg1.png";
+
 const Dashboard = () => {
   const { currentUser } = useAuth();
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState([]); // Restored the images state
   const [loading, setLoading] = useState(true);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -16,16 +17,12 @@ const Dashboard = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
 
+  // Use useEffect to fetch images when component mounts
   useEffect(() => {
-    console.log("Images data:", images);
-  }, [images]);
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log("looooog", token);
     const fetchImages = async () => {
       try {
         const data = await imageService.getAllImages();
-        setImages(data || []);
+        setImages(data.pictures || []); // Store the fetched images in state
       } catch (error) {
         console.error("Failed to fetch images:", error);
       } finally {
@@ -35,49 +32,6 @@ const Dashboard = () => {
 
     fetchImages();
   }, []);
-
-  async function transformImage(image_id) {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/api/images/${image_id}/transform`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Add token if required
-          },
-          body: JSON.stringify({
-            resize: {
-              width: 50,
-              height: 50,
-            },
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Transform success:", data);
-
-      // Check if publicUrl exists in the response
-      if (data.publicUrl) {
-        alert(data.publicUrl);
-      } else {
-        console.warn("No publicUrl in response:", data);
-        alert("Image transformed, but no public URL provided.");
-      }
-
-      // Optionally, refresh the images list
-      const allImages = await imageService.getAllImages();
-      setImages(allImages || []);
-    } catch (error) {
-      console.error("Transform error:", error);
-      alert(error.message || "Failed to transform image");
-    }
-  }
 
   const handleFileChange = (e) => {
     if (e.target.files?.[0]) {
@@ -101,11 +55,11 @@ const Dashboard = () => {
       console.log("Uploading file:", file.name, file.type, file.size);
 
       const response = await imageService.uploadImage(file);
-
       console.log("Upload response:", response);
 
-      const allImages = await imageService.getAllImages();
-      setImages(allImages || []);
+      // Fetch images again after upload
+      const data = await imageService.getAllImages();
+      setImages(data.pictures || []);
 
       setUploadModalOpen(false);
       setFile(null);
@@ -116,10 +70,12 @@ const Dashboard = () => {
       setUploading(false);
     }
   };
+
   const openPreview = (imageUrl) => {
     setPreviewImage(imageUrl);
     setPreviewModalOpen(true);
   };
+
   return (
     <div
       className="min-h-screen -m-2 text-white bg-cover mt-19"
@@ -175,37 +131,38 @@ const Dashboard = () => {
             </div>
           ) : images.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {images.map((image) => (
-                <div key={image._id} className="group relative">
-                  <div className="rounded-lg overflow-hidden bg-gray-800 aspect-square relative">
-                    <img
-                      src={image.url}
-                      alt={image.name || "Image"}
-                      className="h-full w-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                      <h3 className="text-white font-medium truncate">
-                        {image.name || "Untitled"}
-                      </h3>
-                      <div className="flex space-x-2 mt-2">
-                        <Link
-                          key={image._id}
-                          onClick={transformImage(image._id)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => openPreview(image.url)}
-                          className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
-                        >
-                          View
-                        </button>
+              {images.map((image) => {
+                return (
+                  <div key={image._id} className="group relative">
+                    <div className="rounded-lg overflow-hidden bg-gray-800 aspect-square relative">
+                      <img
+                        src={image.url}
+                        alt={image.name || "Image"}
+                        className="h-full w-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                        <h3 className="text-white font-medium truncate">
+                          {image.name || "Untitled"}
+                        </h3>
+                        <div className="flex space-x-2 mt-2">
+                          <Link
+                            to={`/editor/${image._id}`} // Added 'to' prop (assuming you want it to link somewhere)
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => openPreview(image.url)}
+                            className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
+                          >
+                            View
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="bg-gray-800 bg-opacity-50 rounded-xl p-10 text-center">
@@ -227,6 +184,7 @@ const Dashboard = () => {
         </section>
       </main>
 
+      {/* Modal code remains the same */}
       {uploadModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full">

@@ -1,32 +1,31 @@
-import file02 from '../assets/file-02.svg';
-import homeSmile from '../assets/home-smile.svg';
-import plusSquare from '../assets/plus-square.svg';
-import searchMd from '../assets/search-md.svg'; 
-import notification2 from '../assets/notification/image-2.png';
-import notification3 from '../assets/notification/image-3.png';
-import notification4 from '../assets/notification/image-4.png';
-import benefitIcon1 from '../assets/benefits/icon-1.svg';
-import benefitIcon2 from '../assets/benefits/icon-2.svg';
-import benefitIcon3 from '../assets/benefits/icon-3.svg';
-import benefitIcon4 from '../assets/benefits/icon-4.svg';
-import benefitImage2 from '../assets/benefits/image.jpg';
-import facebook from '../assets/socials/facebook.svg';
-import instagram from '../assets/socials/instagram.svg';
-import twitter from '../assets/socials/twitter.svg';
-import telegram from '../assets/socials/telegram.svg';
-import discordBlack from '../assets/socials/discord.svg';
-import speed from '../assets/testimonials/speed.png';
-import kanyewest from '../assets/testimonials/kanyewest.png';
-import pewdiepie from '../assets/testimonials/pewdiepie.png';
-import nikocadeo from '../assets/testimonials/nikocado.png';
-import compress from '../assets/services/compress.png';
-import resize from '../assets/services/resize.png';
-import rotate from '../assets/services/rotate.png';
-import watermark from '../assets/services/watermark.png';
-import filters from '../assets/services/filters.png';
-import transform from '../assets/services/transform.png';
-import crop from '../assets/services/crop.png';
-
+import file02 from "../assets/file-02.svg";
+import homeSmile from "../assets/home-smile.svg";
+import plusSquare from "../assets/plus-square.svg";
+import searchMd from "../assets/search-md.svg";
+import notification2 from "../assets/notification/image-2.png";
+import notification3 from "../assets/notification/image-3.png";
+import notification4 from "../assets/notification/image-4.png";
+import benefitIcon1 from "../assets/benefits/icon-1.svg";
+import benefitIcon2 from "../assets/benefits/icon-2.svg";
+import benefitIcon3 from "../assets/benefits/icon-3.svg";
+import benefitIcon4 from "../assets/benefits/icon-4.svg";
+import benefitImage2 from "../assets/benefits/image.jpg";
+import facebook from "../assets/socials/facebook.svg";
+import instagram from "../assets/socials/instagram.svg";
+import twitter from "../assets/socials/twitter.svg";
+import telegram from "../assets/socials/telegram.svg";
+import discordBlack from "../assets/socials/discord.svg";
+import speed from "../assets/testimonials/speed.png";
+import kanyewest from "../assets/testimonials/kanyewest.png";
+import pewdiepie from "../assets/testimonials/pewdiepie.png";
+import nikocadeo from "../assets/testimonials/nikocado.png";
+import compress from "../assets/services/compress.png";
+import resize from "../assets/services/resize.png";
+import rotate from "../assets/services/rotate.png";
+import watermark from "../assets/services/watermark.png";
+import filters from "../assets/services/filters.png";
+import transform from "../assets/services/transform.png";
+import crop from "../assets/services/crop.png";
 
 export const navigation = [
   {
@@ -52,9 +51,8 @@ export const navigation = [
     title: "Account",
     url: "/profile",
     logged: true,
-  }
-  
-  ];
+  },
+];
 
 export const heroIcons = [homeSmile, file02, searchMd, plusSquare];
 export const notificationImages = [notification4, notification3, notification2];
@@ -67,7 +65,7 @@ export const benefits = [
     iconUrl: benefitIcon1,
     imageUrl: benefitImage2,
     light: true,
-    icon: crop
+    icon: crop,
   },
   {
     id: "1",
@@ -76,7 +74,7 @@ export const benefits = [
     backgroundUrl: "./src/assets/benefits/card-2.svg",
     iconUrl: benefitIcon2,
     imageUrl: benefitImage2,
-    icon: watermark
+    icon: watermark,
   },
   {
     id: "2",
@@ -86,7 +84,7 @@ export const benefits = [
     iconUrl: benefitIcon3,
     imageUrl: benefitImage2,
     light: true,
-    icon: filters
+    icon: filters,
   },
   {
     id: "3",
@@ -95,7 +93,7 @@ export const benefits = [
     backgroundUrl: "./src/assets/benefits/card-4.svg",
     iconUrl: benefitIcon4,
     imageUrl: benefitImage2,
-    icon: resize
+    icon: resize,
   },
   {
     id: "4",
@@ -105,7 +103,7 @@ export const benefits = [
     iconUrl: benefitIcon1,
     imageUrl: benefitImage2,
     light: true,
-    icon: rotate
+    icon: rotate,
   },
   {
     id: "5",
@@ -114,7 +112,7 @@ export const benefits = [
     backgroundUrl: "./src/assets/benefits/card-6.svg",
     iconUrl: benefitIcon2,
     imageUrl: benefitImage2,
-    icon: compress
+    icon: compress,
   },
   {
     id: "6",
@@ -124,7 +122,7 @@ export const benefits = [
     iconUrl: benefitIcon2,
     imageUrl: benefitImage2,
     light: true,
-    icon: transform
+    icon: transform,
   },
 ];
 export const socials = [
@@ -164,29 +162,33 @@ export const testimonials = [
   {
     id: "0",
     img: kanyewest,
-    content_text: "This tool is a lifesaver! Resizing, cropping, and rotating images is so easy, and the watermarking feature is perfect for protecting my work. It’s fast, user-friendly, and delivers great results every time.",
+    content_text:
+      "This tool is a lifesaver! Resizing, cropping, and rotating images is so easy, and the watermarking feature is perfect for protecting my work. It’s fast, user-friendly, and delivers great results every time.",
     testimonial_name: "Kanye west",
-    text_block: "Graphic Designer"
+    text_block: "Graphic Designer",
   },
   {
     id: "1",
     img: pewdiepie,
-    content_text: "I love how simple and efficient this tool is. The filters and transformations give my photos a polished look, and the compression keeps file sizes small without losing quality. Highly recommended!",
+    content_text:
+      "I love how simple and efficient this tool is. The filters and transformations give my photos a polished look, and the compression keeps file sizes small without losing quality. Highly recommended!",
     testimonial_name: "PewDiePie",
-    text_block: "Social Media Manager"
+    text_block: "Social Media Manager",
   },
   {
     id: "2",
     img: speed,
-    content_text: "This tool handles everything—resizing, cropping, watermarking, and more! It's intuitive, fast, and saves me from switching between apps. Perfect for anyone working with images.",
+    content_text:
+      "This tool handles everything—resizing, cropping, watermarking, and more! It's intuitive, fast, and saves me from switching between apps. Perfect for anyone working with images.",
     testimonial_name: "Speed",
-    text_block:  "Photographer"
+    text_block: "Photographer",
   },
   {
     id: "3",
     img: nikocadeo,
-    content_text: "Super versatile and easy to use! The filters and transformations are fantastic, and the watermarking keeps my images secure. It’s my go-to for all image editing needs.",
+    content_text:
+      "Super versatile and easy to use! The filters and transformations are fantastic, and the watermarking keeps my images secure. It’s my go-to for all image editing needs.",
     testimonial_name: "Nikocado Avocado",
-    text_block: "Content Creator"
-  }
-]
+    text_block: "Content Creator",
+  },
+];

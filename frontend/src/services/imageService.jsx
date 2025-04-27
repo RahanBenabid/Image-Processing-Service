@@ -1,34 +1,49 @@
-import api from './api';
+import api from "./api";
+import { jwtDecode } from "jwt-decode";
+
+function decodeToken(token) {
+  try {
+    const decoded = jwtDecode(token);
+    return decoded.userId; // Or whatever field contains the user ID in your token
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return null;
+  }
+}
 
 const imageService = {
   getAllImages: async () => {
     try {
-      return await api.get('/api/pictures');
+      const token = localStorage.getItem("token");
+      const user_id = decodeToken(token);
+      const result = await api.get(`/api/users/${user_id}/pictures`);
+      return result;
     } catch (error) {
-      console.error('Error fetching images:', error.message);
-      throw new Error(error.message || 'Failed to fetch images');
+      console.error("Error fetching images:", error.message);
+      throw new Error(error.message || "Failed to fetch images");
     }
   },
 
   getImageById: async (imageId) => {
     try {
-      return await api.get(`/api/pictures/${imageId}`);
+      const result = await api.get(`/api/pictures/${imageId}`);
+      return result;
     } catch (error) {
-      console.error('Error fetching image:', error);
-      throw new Error(error.message || 'Failed to fetch image');
+      console.error("Error fetching image:", error);
+      throw new Error(error.message || "Failed to fetch image");
     }
   },
 
   uploadImage: async (fileData) => {
     try {
       const formData = new FormData();
-      formData.append('picture', fileData);
-      
-      console.log('Form data entries:', Array.from(formData.entries()));
-      
-      return await api.upload('/api/pictures/upload', formData);
+      formData.append("picture", fileData);
+
+      console.log("Form data entries:", Array.from(formData.entries()));
+
+      return await api.upload("/api/pictures/upload", formData);
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error("Error uploading image:", error);
       throw error;
     }
   },
@@ -36,30 +51,31 @@ const imageService = {
   uploadImages: async (filesArray) => {
     try {
       const formData = new FormData();
-      
+
       filesArray.forEach((file, index) => {
-        formData.append('picture', file);
+        formData.append("picture", file);
       });
-      
-      return await api.upload('/api/pictures/upload', formData, {
+
+      return await api.upload("/api/pictures/upload", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data', 
-        }});
+          "Content-Type": "multipart/form-data",
+        },
+      });
     } catch (error) {
-      console.error('Error uploading images:', error);
-      throw new Error(error.message || 'Failed to upload images');
+      console.error("Error uploading images:", error);
+      throw new Error(error.message || "Failed to upload images");
     }
   },
 
   updateImage: async (imageId, fileData) => {
     try {
       const formData = new FormData();
-      formData.append('picture', fileData);
-      
-      return await api.upload(`/api/pictures/${imageId}`, formData, 'PUT');
+      formData.append("picture", fileData);
+
+      return await api.upload(`/api/pictures/${imageId}`, formData, "PUT");
     } catch (error) {
-      console.error('Error updating image:', error);
-      throw new Error(error.message || 'Failed to update image');
+      console.error("Error updating image:", error);
+      throw new Error(error.message || "Failed to update image");
     }
   },
 
@@ -67,8 +83,8 @@ const imageService = {
     try {
       return await api.delete(`/api/pictures/${imageId}`);
     } catch (error) {
-      console.error('Error deleting image:', error);
-      throw new Error(error.message || 'Failed to delete image');
+      console.error("Error deleting image:", error);
+      throw new Error(error.message || "Failed to delete image");
     }
   },
 
@@ -76,10 +92,10 @@ const imageService = {
     try {
       return await api.get(`/api/pictures/getPublicUrl/${imageId}`);
     } catch (error) {
-      console.error('Error getting public URL:', error);
-      throw new Error(error.message || 'Failed to get image URL');
+      console.error("Error getting public URL:", error);
+      throw new Error(error.message || "Failed to get image URL");
     }
-  }
+  },
 };
 
 export default imageService;
