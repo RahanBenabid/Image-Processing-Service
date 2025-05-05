@@ -22,12 +22,12 @@ class TransformationController {
       const path = publicUrl.split("/image-processing/")[1].replace(/^\//, "");
 
       // Download image from Supabase (uncomment when ready)
-      //    const imageBuffer = await downloadImage(path);
+      const imageBuffer = await downloadImage(path);
 
       // Temporary local image read (remove this in production)
-      const imageBuffer = fs.readFileSync(
-        "/Users/RahanBen/Downloads/test/6806571e9980c54be72c6a48.jpeg",
-      );
+//    const imageBuffer = fs.readFileSync(
+//      "/Users/RahanBen/Downloads/test/6806571e9980c54be72c6a48.jpeg",
+//    );
 
       // Process the image with the changes
       const transformedImageBuffer = await processImage(imageBuffer, changes);
@@ -52,20 +52,20 @@ class TransformationController {
         transformedImageBuffer,
         `transformed/${transformedPictureId}.jpeg`,
       );
-
+      
       // update the public url and serve it
       await Transformation.updateOne(
         { _id: transformedPictureId },
         { url: urlData.publicUrl },
       );
+      const  myPublicUrl = urlData.publicUrl;
 
       // Send the transformed image as a response
       res.status(200).json({
         success: true,
-        publicUrl,
+        publicUrl: myPublicUrl,
         urlData,
       });
-      
     } catch (err) {
       console.error(err);
       return next(err);

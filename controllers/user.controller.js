@@ -182,25 +182,25 @@ class UserController {
       return next(err);
     }
   }
-  
+
   async listUserPictures(req, res, next) {
     try {
       const userId = req.params.id;
-      
+
       // if (req.user.userId !== userId) return res.sendStatus(403);
-      
+
       const userPictures = await Picture.find({
         user_id: userId,
       });
-      
+
       console.log(userPictures);
-      
+
       if (!userId)
         return res.status(400).json({
           success: false,
           message: "no user id provided",
         });
-      
+
       return res.status(200).json({
         success: true,
         pictures: userPictures,
