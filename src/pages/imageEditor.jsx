@@ -56,8 +56,7 @@ const ImageEditor = () => {
       }
 
       const data = await response.json();
-      console.log("Transform success:", data);
-
+      handleDownload(data.publicUrl);
       // Check if publicUrl exists in the response
       if (data.publicUrl) {
         alert(data.publicUrl);
@@ -87,12 +86,11 @@ const ImageEditor = () => {
     }
 };
 
-  const handleDownload = () => {
-    if (!image?.url) return;
-    console.log("urrlllllll:", image.url);
-    const currentUrl = `${image.url}?t=${new Date().getTime()}`;
+  const handleDownload = (imageUrl) => {
+    
+    // console.log("urrlllllll:", image.url);t=${new Date().getTime()}`;
     const link = document.createElement("a");
-    link.href = currentUrl ;
+    link.href = imageUrl ;
     link.download = image.name || "image";
     document.body.appendChild(link);
     link.click();
