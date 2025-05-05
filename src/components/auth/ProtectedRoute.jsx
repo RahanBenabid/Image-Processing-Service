@@ -1,7 +1,9 @@
-import { useAuth } from '../../context/AuthContext'; 
-import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+
 const ProtectedRoute = () => {
-  const { currentUser, loading } = useAuth();
+  const { currentUser, loading, verifyToken } = useAuth();
+  const location = useLocation();
   
   if (loading) {
     return (
@@ -10,11 +12,14 @@ const ProtectedRoute = () => {
       </div>
     );
   }
-
-  if (!currentUser) {
+  const isTokenValid = verifyToken();
+  if (!currentUser || !isTokenValid) {
+    if (!isTokenValid && currentUser) {
+      verifyToken(); 
+    }
+    
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-
   return <Outlet />;
 };
 

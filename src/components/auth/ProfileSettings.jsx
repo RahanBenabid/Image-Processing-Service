@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import {userService} from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
 
 const ProfileSettings = () => {
+
   const { currentUser, updateProfile } = useAuth();
+  const [userInfo, setuserInfo]= useState([]);
+  useEffect(() => {
+  const user= userService.getUser(currentUser.id)
+  setuserInfo(user);
+  console.log('UseeeeeeerInfo:', userInfo);
+  }, [userInfo]);
+  console.log('Current User:', currentUser);
   const [formData, setFormData] = useState({
     username: currentUser?.username || '',
     email: currentUser?.email || '',

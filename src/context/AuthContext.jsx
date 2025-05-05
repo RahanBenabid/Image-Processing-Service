@@ -25,8 +25,9 @@ export const AuthProvider = ({ children }) => {
           const decoded = jwtDecode(token);
           api.setAuthToken(token);
           setCurrentUser({
-            id: decoded.id,
+            id: decoded.userId,
             email: decoded.email,
+            username: decoded.username,
           });
         } catch (err) {
           console.error("Token decoding error:", err);
@@ -39,6 +40,27 @@ export const AuthProvider = ({ children }) => {
 
     initializeAuth();
   }, []);
+const verifyToken = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return false;
+  }
+  
+  try {
+    const decoded = jwtDecode(token);
+    const currentTime = Date.now() / 1000; 
+    if (decoded.exp && decoded.exp < currentTime) {
+      console.log("Token expired");
+      logout();
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("Token verification error:", err);
+    logout();
+    return false;
+  }
+};
 
   const login = async (email, password) => {
     setLoading(true);
@@ -54,11 +76,13 @@ export const AuthProvider = ({ children }) => {
       api.setAuthToken(token);
 
       const decoded = jwtDecode(token);
+      console.log("Decoded token:", decoded);
       const authenticatedUser = {
-        id: decoded.id,
-        email: decoded.email,
+        id: decoded.userId,
+        // email: decoded.email,
         ...user,
       };
+      console.log("Authenticated user:", authenticatedUser);
 
       setCurrentUser(authenticatedUser);
       return authenticatedUser;
@@ -74,7 +98,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (username, email, password) => {
     setLoading(true);
     setError(null);
-    console.log("helloooo", username, email, password);
+    // console.log("helloooo", username, email, password);
     try {
       const response = await authService.register(username, email, password);
       setCurrentUser(response.user);
@@ -120,6 +144,7 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     getToken: () => localStorage.getItem("token"),
     isAuthenticated: () => !!currentUser,
+    verifyToken,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

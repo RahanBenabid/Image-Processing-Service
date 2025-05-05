@@ -13,9 +13,9 @@ const ImageTransform = ({ imageId, onTransformComplete }) => {
     crop: { x: 0, y: 0, width: 500, height: 500 },
     rotate: { degrees: 90 },
     flip: { direction: 'horizontal' },
-    filter: { filter: 'grayscale' },
+    filter: { filter: 'black_and_white' },
     compress: { quality: 80 },
-    convert: { format: 'webp' },
+    convert: { format: 'jpeg' },
     watermark: { text: 'Watermark', position: 'bottom-right' }
   });
 
@@ -114,7 +114,7 @@ const ImageTransform = ({ imageId, onTransformComplete }) => {
         ]
       },
       filter: {
-        options: ['grayscale', 'sepia', 'blur', 'sharpen', 'negative', 'brightness', 'contrast'].map(filter => ({
+        options: ['black_and_white', 'sharpen', 'thumbnail'].map(filter => ({
           label: filter,
           active: params.filter === filter,
           onClick: () => updateParams('filter', 'filter', filter)
@@ -133,7 +133,7 @@ const ImageTransform = ({ imageId, onTransformComplete }) => {
         ]
       },
       convert: {
-        options: ['jpg', 'png', 'webp', 'gif'].map(format => ({
+        options: ['jpeg', 'png', 'webp', 'bmp'].map(format => ({
           label: format.toUpperCase(),
           active: params.format === format,
           onClick: () => updateParams('convert', 'format', format)

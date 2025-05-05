@@ -13,7 +13,9 @@ import MegaMenu from './MegaMenu';
 const Header = () => {
   const path = useLocation();
   const hash = path.hash;
-  const { currentUser } = useAuth();
+  const { verifyToken } = useAuth();
+
+  const isValidToken = verifyToken();
 
   const [showMenu, setShowMegaMenu] = useState(false);
   const [openNavigation, setOpenNavigation] = useState(false);
@@ -58,7 +60,7 @@ const Header = () => {
         </Link>
 
         <div className="flex items-center space-x-8">
-          {!currentUser && (
+          {!isValidToken && (
             <div
               ref={menuContainerRef}
               className="relative"
@@ -81,7 +83,7 @@ const Header = () => {
             </div>
           )}
 
-          {currentUser ? (
+          {isValidToken ? (
             <>
               <Link
                 to="/dashboard"
@@ -129,7 +131,7 @@ const Header = () => {
           >
             <div className="relative z-2 flex flex-col items-center justify-center m-auto lg:flex-row">
               {navigation.map((item) => {
-                if ((!item.logged && !currentUser) || (item.logged && currentUser)) {
+                if ((!item.logged && !isValidToken) || (item.logged && isValidToken)) {
                   return (
                     <Link  
                       key={item.id}  
@@ -148,7 +150,7 @@ const Header = () => {
                 return null;
               })}
               
-              {currentUser ? (
+              {isValidToken ? (
                 <>
                   <Link
                     to="/dashboard"

@@ -49,6 +49,7 @@ const ImageEditor = () => {
           }),
         },
       );
+      console.log("response", response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -75,17 +76,23 @@ const ImageEditor = () => {
   const handleTransformComplete = async () => {
     try {
       const data = await imageService.getPictureById(id);
-      setImage(data);
+      if (data.url !== image?.url) {
+        console.log('Image was transformed, updating preview');
+        setImage(data);
+      } else {
+        console.log('No change in image URL');
+      }
     } catch (err) {
       console.error("Failed to refresh image:", err);
     }
-  };
+};
 
   const handleDownload = () => {
     if (!image?.url) return;
-
+    console.log("urrlllllll:", image.url);
+    const currentUrl = `${image.url}?t=${new Date().getTime()}`;
     const link = document.createElement("a");
-    link.href = image.url;
+    link.href = currentUrl ;
     link.download = image.name || "image";
     document.body.appendChild(link);
     link.click();
@@ -94,17 +101,17 @@ const ImageEditor = () => {
 
   return (
     <div
-      className="min-h-screen -m-2 text-white bg-cover"
+      className="min-h-screen -m-2 mt-19 text-white bg-cover"
       style={{ backgroundImage: `url(${bgImage})` }}
     >
       <div className="container mx-auto p-6">
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all duration-200"
+            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg  transition-all duration-200"
           >
             <ArrowLeft size={16} />
-            <span>Back to Dashboard</span>
+            <span className="hidden md:block">Back to Dashboard</span>
           </button>
 
           {image && (

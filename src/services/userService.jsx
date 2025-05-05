@@ -18,14 +18,14 @@ export const userService = {
   },
   
   getUser: (userId) => {
-    return api.get(`/users/${userId}`);
+    return api.get(`/${userId}`);
   },
   
   updateUser: (userId, userData) => {
-    return api.put(`/users/${userId}`, userData);
+    return api.put(`/${userId}`, userData);
   },
   
   deleteUser: (userId) => {
-    return api.delete(`/users/${userId}`);
+    return api.delete(`/${userId}`);
   }
 };

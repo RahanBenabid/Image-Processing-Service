@@ -10,4 +10,19 @@ export default defineConfig({
     }),
     react(),
   ],
+  build: {
+    outDir: 'dist', 
+  },
+  server: {
+    host: '0.0.0.0',
+    watch: {
+      usePolling: true
+    }
+  },
+  proxy: {
+    '/api': {
+      target: 'http://backend:3000',
+      changeOrigin: true,
+      secure: false,
+    }}
 });

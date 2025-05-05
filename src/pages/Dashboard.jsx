@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import imageService from "../services/imageService";
 import { benefits } from "../constants";
-import { Upload, Image as ImageIcon, Plus, X } from "lucide-react";
+import { Upload, Image as ImageIcon, Plus, X, CloudCog } from "lucide-react";
 import bgImage from "../assets/sign_inout/bg1.png";
 
 const Dashboard = () => {
@@ -32,7 +32,8 @@ const Dashboard = () => {
 
     fetchImages();
   }, []);
-
+  
+  console.log("Current user:", currentUser);
   const handleFileChange = (e) => {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);

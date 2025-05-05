@@ -43,12 +43,12 @@ const App = () => {
           <Route path="/" element={<HomeContent />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/editor/:id" element={<ImageEditor />} />
+          {/* <Route path="/editor/:id" element={<ImageEditor />} /> */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/transformations" element={<Transformations />} />
-            <Route path="/edit/:id" element={<ImageEditor />} />
+            <Route path="/editor/:id" element={<ImageEditor />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" />} />

@@ -9,7 +9,7 @@ const transformationService = {
       );
 
       return await api.post(
-        `/api/pictures/${imageId}/transform`,
+        `/api/images/${imageId}/transform`,
         backendTransformations,
       );
     } catch (error) {
