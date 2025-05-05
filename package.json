@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.9",
+    "file-saver": "^2.0.5",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.486.0",
     "react": "^19.0.0",

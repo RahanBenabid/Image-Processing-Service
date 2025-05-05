@@ -4,6 +4,7 @@ import imageService from "../services/imageService";
 import ImageTransform from "../components/ImageTransform";
 import { ArrowLeft, Download, Link, RefreshCw } from "lucide-react";
 import bgImage from "../assets/sign_inout/bg1.png";
+import { saveAs } from "file-saver";
 
 const ImageEditor = () => {
   const { id } = useParams();
@@ -17,7 +18,7 @@ const ImageEditor = () => {
       try {
         setLoading(true);
         const image = await imageService.getImageById(id);
-        console.log("stinky", image.picture);
+        console.log("Image loaded:", image.picture);
         setImage(image.picture);
         setError(null);
       } catch (err) {
@@ -30,16 +31,22 @@ const ImageEditor = () => {
 
     fetchImage();
   }, [id]);
-  async function transformImage(image) {
+
+  const transformImage = async () => {
     try {
-      console.log("gooooon", image);
+      if (!image || !image._id) {
+        console.error("No image to transform");
+        return null;
+      }
+
+      console.log("Transforming image:", image._id);
       const response = await fetch(
         `http://localhost:3000/api/images/${image._id}/transform`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Add token if required
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
             resize: {
@@ -49,52 +56,59 @@ const ImageEditor = () => {
           }),
         },
       );
-      console.log("response", response);
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
       const data = await response.json();
-      handleDownload(data.publicUrl);
-      // Check if publicUrl exists in the response
+
       if (data.publicUrl) {
-        alert(data.publicUrl);
+        return data.publicUrl;
       } else {
         console.warn("No publicUrl in response:", data);
         alert("Image transformed, but no public URL provided.");
+        return null;
       }
-
-      // Optionally, refresh the images list
     } catch (error) {
       console.error("Transform error:", error);
       alert(error.message || "Failed to transform image");
+      return null;
     }
-  }
+  };
 
   const handleTransformComplete = async () => {
     try {
       const data = await imageService.getPictureById(id);
       if (data.url !== image?.url) {
-        console.log('Image was transformed, updating preview');
+        console.log("Image was transformed, updating preview");
         setImage(data);
       } else {
-        console.log('No change in image URL');
+        console.log("No change in image URL");
       }
     } catch (err) {
       console.error("Failed to refresh image:", err);
     }
-};
+  };
 
-  const handleDownload = (imageUrl) => {
-    
-    // console.log("urrlllllll:", image.url);t=${new Date().getTime()}`;
-    const link = document.createElement("a");
-    link.href = imageUrl ;
-    link.download = image.name || "image";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = () => {
+    if (image && image.url) {
+      console.log("Downloading image:", image.url);
+      // Use original file name if available, otherwise default name
+      const fileName =
+        (image.metadata && image.metadata.fileName) || "downloaded-image.jpg";
+      saveAs(image.url, fileName);
+    } else {
+      console.error("No image URL available for download");
+    }
+  };
+
+  const handleTransformAndDownload = async () => {
+    const transformedUrl = await transformImage();
+    if (transformedUrl) {
+      console.log("Downloading transformed image:", transformedUrl);
+      saveAs(transformedUrl, "transformed-image.jpg");
+    }
   };
 
   return (
@@ -106,7 +120,7 @@ const ImageEditor = () => {
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg  transition-all duration-200"
+            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all duration-200"
           >
             <ArrowLeft size={16} />
             <span className="hidden md:block">Back to Dashboard</span>
@@ -173,12 +187,9 @@ const ImageEditor = () => {
                     <div>
                       <span className="block">Name: </span>
                       <span className="font-medium text-white">
-                        {image.metadata.fileName || "Untitled"}
-                      </span>
-                      <span>
-                        <button onClick={() => transformImage(image)}>
-                          image resize
-                        </button>
+                        {image.metadata && image.metadata.fileName
+                          ? image.metadata.fileName
+                          : "Untitled"}
                       </span>
                     </div>
                     {image.size && (
@@ -205,6 +216,16 @@ const ImageEditor = () => {
                         </span>
                       </div>
                     )}
+                  </div>
+
+                  <div className="mt-4 pt-4 border-t border-gray-700">
+                    <button
+                      onClick={handleTransformAndDownload}
+                      className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-all duration-200"
+                    >
+                      <Download size={16} />
+                      <span>Transform & Download (50x50)</span>
+                    </button>
                   </div>
                 </div>
               </div>
