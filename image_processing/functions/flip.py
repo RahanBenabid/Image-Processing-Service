@@ -3,13 +3,14 @@
 from PIL import Image
 
 def flip(img: Image.Image, method: str) -> Image.Image:
-	if method == "Horizontal":
+	method = method.lower()
+	if method == "horizontal":
 		img = img.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
-	elif method == "Vertical":
+	elif method == "vertical":
 		img = img.transpose(method=Image.Transpose.FLIP_TOP_BOTTOM)
-	elif method ==  "Both":
+	elif method ==  "both":
 		img = img.transpose(method=Image.Transpose.FLIP_TOP_BOTTOM)
 		img = img.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
 	else:
-		raise ValueError("wrong method")
+		raise ValueError("method must be one of: 'horizontal', 'vertical', 'both'")
 	return img

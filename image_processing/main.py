@@ -10,7 +10,7 @@ from functions.resize import resize
 from functions.crop import crop
 from functions.rotate import rotate
 from functions.converter import converter
-from functions.apply_filters import Filters
+from functions.applyFilters import Filters
 from functions.watermark import watermark
 from functions.compress import compress
 from functions.flip import flip
@@ -34,15 +34,45 @@ def process_image(changes: dict, img: Image.Image):
     
   if 'filters' in changes:
     filters = changes.get('filters', {})
-    if filters.get('black_and_white'):
-      img = Filters.back_and_white(img)
+    if filters.get('blackAndWhite'):
+      img = Filters.black_and_white(img)
     if filters.get('thumbnail'):
-      img = Filters.create_thumbnail(img)
+      thumb_size = (128, 128)
+      if isinstance(filters.get('thumbnail'), dict):
+        thumb_data = filters.get('thumbnail')
+        width = thumb_data.get('width', 128)
+        height = thumb_data.get('height', 128)
+        thumb_size = (width, height)
+      img = Filters.create_thumbnail(img, size=thumb_size)
     if filters.get('sharpen'):
-      img = Filters.sharpen_image(img)
+      factor = 4.0
+      if isinstance(filters.get('sharpen'), (int, float)):
+        factor = filters.get('sharpen')
+      img = Filters.sharpen_image(img, factor=factor)
+    if filters.get('blur'):
+      radius = 2.0
+      if isinstance(filters.get('blur'), (int, float)):
+        radius = filters.get('blur')
+      img = Filters.blur_image(img, radius=radius)
+    if filters.get('brightness'):
+      factor = filters.get('brightness')
+      if isinstance(factor, (int, float)):
+        img = Filters.adjust_brightness(img, factor=factor)
+    if filters.get('contrast'):
+      factor = filters.get('contrast')
+      if isinstance(factor, (int, float)):
+        img = Filters.adjust_contrast(img, factor=factor)
+    if filters.get('sepia'):
+      img = Filters.sepia(img)
+    if filters.get('invert'):
+      img = Filters.invert(img)
       
   if 'format' in changes:
-    format_ = changes.get('format', "")
+    format_ = changes.get('format', "").upper()
+    img = converter(img, mode=format_)
+  
+  if 'flip' in changes:
+    method = changes.get('flip', "").lower()
     img = converter(img, mode=format_)
     
   if 'transpose' in changes:
@@ -52,9 +82,7 @@ def process_image(changes: dict, img: Image.Image):
   if 'compress' in changes and changes.get('compress') == True:
     img = compress(img)
     
-  img = Filters.back_and_white(img)
-    
-  print("Image processed")
+  print("Image processed successfully")
   return img
   
   
@@ -87,28 +115,4 @@ if __name__ == "__main__":
       sys.exit(1)
   else:
     print("No changes provided")
-    
-    
-    """
-{
-  "resize": {
-    "width": 100,
-    "height": 100
-  },
-  "crop": {
-    "width": 50,
-    "height": 50,
-    "x": 10,
-    "y": 10
-  },
-  "rotate": 90,
-  "format": "png",
-  "compress": true,
-  "filters": {
-    "back_and_white": true,
-    "thumbnail": false,
-    "sharpen": true
-  }
-}
-"""
     
