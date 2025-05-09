@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import transformService from '../services/transformService';
 import { Sliders, Crop, RotateCw, RefreshCw, FileImage, Image, Palette, Type } from 'lucide-react';
 
-const ImageTransform = ({ imageId, onTransformComplete }) => {
+const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
   const [activeTab, setActiveTab] = useState('resize');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
@@ -18,6 +18,62 @@ const ImageTransform = ({ imageId, onTransformComplete }) => {
     convert: { format: 'jpeg' },
     watermark: { text: 'Watermark', position: 'bottom-right' }
   });
+  
+  useEffect(() => {
+    const pythonFormatParams = convertToPythonFormat(transformParams, activeTab);
+    if (onParamsChange) {
+      onParamsChange(pythonFormatParams);
+    }
+  }, [transformParams, activeTab, onParamsChange]);
+  
+  const convertToPythonFormat = (params, currentTab) => {
+    const transformations = {};
+    switch (currentTab) {
+      case 'resize':
+        transformations.resize = {
+          width: params.resize.width,
+          height: params.resize.height
+        };
+        break;
+      case 'crop':
+        transformations.crop = {
+          x: params.crop.x,
+          y: params.crop.y,
+          width: params.crop.width,
+          height: params.crop.height
+        };
+        break;
+      case 'rotate':
+        transformations.rotate = params.rotate.degrees;
+        break;
+      case 'flip':
+        transformations.transpose = params.flip.direction === 'horizontal' ? 'horizontal' : 'vertical';
+        break;
+      case 'filter':
+        transformations.filters = {
+          black_and_white: params.filter.filter === 'black_and_white',
+          thumbnail: params.filter.filter === 'thumbnail',
+          sharpen: params.filter.filter === 'sharpen'
+        };
+        break;
+      case 'compress':
+        transformations.compress = true;
+        break;
+      case 'convert':
+        transformations.format = params.convert.format;
+        break;
+      case 'watermark':
+        transformations.watermark = {
+          text: params.watermark.text,
+          position: params.watermark.position
+        };
+        break;
+      default:
+        break;
+    }
+    
+    return transformations;
+  };
 
   const handleTransform = async (transformationType) => {
     setIsProcessing(true);

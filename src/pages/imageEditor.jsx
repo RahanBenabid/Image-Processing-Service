@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import imageService from "../services/imageService";
+import pythonService from "../services/pythonService"; // Import the new service
 import ImageTransform from "../components/ImageTransform";
 import { ArrowLeft, Download, Link, RefreshCw } from "lucide-react";
 import bgImage from "../assets/sign_inout/bg1.png";
@@ -9,9 +10,12 @@ import { saveAs } from "file-saver";
 const ImageEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [transformationParams, setTransformationParams] = useState(null); 
+  const [previewImage, setPreviewImage] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false); 
 
   useEffect(() => {
     const fetchImage = async () => {
@@ -31,6 +35,21 @@ const ImageEditor = () => {
 
     fetchImage();
   }, [id]);
+  const getImageAsBase64 = async (url) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Error fetching image as base64:", error);
+      throw error;
+    }
+  };
 
   const transformImage = async () => {
     try {
@@ -91,6 +110,31 @@ const ImageEditor = () => {
     }
   };
 
+  // Function to preview transformation using Python directly
+  const handlePreviewTransform = async () => {
+    if (!image || !transformationParams) {
+      console.error("No image or transformation parameters");
+      return;
+    }
+
+    setPreviewLoading(true);
+    try {
+      const imageData = await getImageAsBase64(image.url);
+      const processedImageData = await pythonService.processImage(imageData,transformationParams );
+      setPreviewImage(processedImageData);
+    } catch (error) {
+      console.error("Preview transform error:", error);
+      setError("Failed to preview transformation: " + error.message);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  // Function to handle transformation parameter updates from ImageTransform component
+  const handleTransformParamsChange = (params) => {
+    setTransformationParams(params);
+  };
+
   const handleDownload = () => {
     if (image && image.url) {
       console.log("Downloading image:", image.url);
@@ -110,6 +154,9 @@ const ImageEditor = () => {
       saveAs(transformedUrl, "transformed-image.jpg");
     }
   };
+
+  // Use preview image if available, otherwise use original image
+  const displayImageSrc = previewImage || (image && `${image.url}?t=${new Date().getTime()}`);
 
   return (
     <div
@@ -166,18 +213,50 @@ const ImageEditor = () => {
             <div className="lg:col-span-2">
               <div className="bg-gray-800 bg-opacity-70 rounded-xl overflow-hidden">
                 <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-                  <h2 className="font-semibold">Image Preview</h2>
-                  <button
-                    onClick={handleTransformComplete}
-                    className="flex items-center space-x-1 text-blue-400 hover:text-blue-300 transition-colors"
-                  >
-                    <RefreshCw size={14} />
-                    <span className="text-sm">Refresh</span>
-                  </button>
+                  <h2 className="font-semibold">
+                    {previewImage ? "Image Preview (Unsaved)" : "Image Preview"}
+                  </h2>
+                  <div className="flex items-center space-x-3">
+                    {previewImage && (
+                      <button
+                        onClick={() => setPreviewImage(null)}
+                        className="flex items-center space-x-1 text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        <span className="text-sm">Clear Preview</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={handlePreviewTransform}
+                      disabled={previewLoading || !transformationParams}
+                      className={`flex items-center space-x-1 transition-colors ${
+                        previewLoading
+                          ? "text-gray-500 cursor-not-allowed"
+                          : !transformationParams
+                          ? "text-gray-500 cursor-not-allowed"
+                          : "text-blue-400 hover:text-blue-300"
+                      }`}
+                    >
+                      {previewLoading ? (
+                        <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full mr-1"></div>
+                      ) : (
+                        <RefreshCw size={14} />
+                      )}
+                      <span className="text-sm">
+                        {previewLoading ? "Loading..." : "Preview"}
+                      </span>
+                    </button>
+                    <button
+                      onClick={handleTransformComplete}
+                      className="flex items-center space-x-1 text-green-400 hover:text-green-300 transition-colors"
+                    >
+                      <RefreshCw size={14} />
+                      <span className="text-sm">Save & Refresh</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="p-6 flex justify-center">
                   <img
-                    src={`${image.url}?t=${new Date().getTime()}`}
+                    src={displayImageSrc}
                     alt={image.name || "Image preview"}
                     className="max-w-full max-h-[70vh] object-contain"
                   />
@@ -235,6 +314,7 @@ const ImageEditor = () => {
               <ImageTransform
                 imageId={id}
                 onTransformComplete={handleTransformComplete}
+                onParamsChange={handleTransformParamsChange}
               />
             </div>
           </div>
