@@ -2,22 +2,33 @@ import React, { useEffect, useState } from 'react';
 import {userService} from '../../services/userService';
 import { useAuth } from '../../context/AuthContext';
 
-const ProfileSettings = () => {
+const ProfileSettings = ({user}) => {
 
   const { currentUser, updateProfile } = useAuth();
-  const [userInfo, setuserInfo]= useState([]);
-  useEffect(() => {
-  const user= userService.getUser(currentUser.id)
-  setuserInfo(user);
-  console.log('UseeeeeeerInfo:', userInfo);
-  }, [userInfo]);
-  console.log('Current User:', currentUser);
+  // const [userInfo, setuserInfo]= useState([]);
+  // useEffect(() => {
+  // const user= userService.getUser(currentUser.id)
+  // setuserInfo(user);
+   console.log('UseeeeeeerInfo:', user);
+  // }, [userInfo]);
+  // console.log('Current User:', currentUser);
   const [formData, setFormData] = useState({
-    username: currentUser?.username || '',
-    email: currentUser?.email || '',
+    username: user?.username || '',
+    email: user?.email || '',
     password: '',
     newPassword: ''
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prevData => ({
+        ...prevData,
+        username: user.username || '',
+        email: user.email || ''
+      }));
+    }
+  }, [user]);
+   console.log('FormData:', formData);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -26,11 +37,26 @@ const ProfileSettings = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+  const handleDeleteAccount = async ()=>{
+    if (window.confirm('Are you sure you want to delete your account?')) {
+      try {
+        await userService.deleteUser(user._id);
+        setSuccess('Account deleted successfully!');
+        setError(''); 
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
+      } catch (err){
+        setError(err.message);
+        setSuccess('');
+        console.error(err.message);
+      }
+  }}
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await updateProfile(currentUser.id, formData);
+      await updateProfile(user._id, formData);
       setSuccess('Profile updated successfully!');
       setError('');
       setIsEditing(false);
@@ -146,15 +172,23 @@ const ProfileSettings = () => {
               </div>
               <p className="mt-1 text-xs text-n-4">Leave blank to keep current password</p>
             </div>
-
+            <div className='flex  items-center pt-6 border-t border-n-6'>
+             <button
+              type="button"
+              onClick={handleDeleteAccount}
+              className="px-6 py-3 mr-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-red-500/20" >
+              Delete Account
+            </button>
             <button
               type="submit"
               className="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-300 shadow-lg hover:shadow-purple-500/20"
             >
               Save Changes
             </button>
+            </div>
           </>
         )}
+        
       </form>
     </div>
   );

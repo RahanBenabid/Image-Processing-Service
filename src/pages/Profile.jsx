@@ -1,16 +1,46 @@
-import React, { use } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ProfileSettings from '../components/auth/ProfileSettings';
 import {userService} from '../services/userService';
 import { useNavigate } from 'react-router-dom';
 
-
-
 const Profile = () => {
   const { currentUser, isLoading } = useAuth();
+  const [userInfo, setInfo] = useState({'user': {}}); 
   const navigate = useNavigate();
-  // const user = userService.getUser(currentUser.id);
-  // console.log('User:', user);
+  // async function fetchUser() {
+  //   try {
+  //     if (currentUser) {
+  //       const user = await userService.getUser(currentUser.id);
+  //       console.log('finalllllyyyyyy: ', user);
+  //       setInfo(user.user); 
+  //       console.log('infoooo:',userInfo);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching user:', error.message);
+  //   }
+  // }
+  // fetchUser(); 
+  useEffect(() => {
+  // console.log('starteeeeeeeeeeeeeed');
+  
+  async function fetchUser() {
+    try {
+      if (currentUser) {
+        // console.log('process started ....');
+        const user = await userService.getUser(currentUser.id);
+        // console.log('finalllllyyyyyy: ', user);
+        setInfo(user.user); 
+      }
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  }
+  fetchUser(); 
+  
+},[currentUser]);
+console.log('userrr shit : ', userInfo._id, userInfo.username, userInfo.email)
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-n-8">
@@ -63,11 +93,11 @@ const Profile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-n-6 rounded-lg p-5 hover:shadow-purple-500/20 hover:-translate-y-1 transition-all duration-300 border border-n-5">
                     <p className="text-sm text-n-3 mb-1">Username</p>
-                    <p className="font-medium text-lg">{currentUser.username}</p>
+                    <p className="font-medium text-lg">{userInfo.username}</p>
                   </div>
                   <div className="bg-n-6 rounded-lg p-5 hover:shadow-purple-500/20 hover:-translate-y-1 transition-all duration-300 border border-n-5">
                     <p className="text-sm text-n-3 mb-1">Email</p>
-                    <p className="font-medium text-lg">{currentUser.email}</p>
+                    <p className="font-medium text-lg">{userInfo.email}</p>
                   </div>
                 </div>
               </div>
@@ -94,7 +124,7 @@ const Profile = () => {
               </div>
               
               <div className="border-t border-n-6 pt-8">
-                <ProfileSettings />
+                <ProfileSettings user={userInfo}/>
               </div>
             </div>
           </div>
