@@ -77,6 +77,23 @@ const Dashboard = () => {
     setPreviewModalOpen(true);
   };
 
+  const handleRemoveImage = async (imageId) => {
+    try{
+      if(!window.confirm("Are you sure you want to delete this image?")) {
+        return;
+      }
+      await imageService.deleteImage(imageId);
+      const updateImages = images.filter((image)=> image._id !== imageId);
+      setImages(updateImages);
+      alert("Image removed successfully");
+
+      console.log("Remove image:", imageId);
+      
+    } catch (error) {
+      console.error("Failed to remove image:", error);
+      alert("Failed to remove image, try again please!");
+    };
+  }
   return (
     <div
       className="min-h-screen -m-2 text-white bg-cover mt-19"
@@ -136,6 +153,13 @@ const Dashboard = () => {
                 return (
                   <div key={image._id} className="group relative">
                     <div className="rounded-lg overflow-hidden bg-gray-800 aspect-square relative">
+                      <button
+                        onClick={() => handleRemoveImage(image._id)}
+                        className="absolute   top-2 right-2 z-10 bg-black opacity-60 rounded-full p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:opacity-80"
+                        title="Remove image">
+                        <X size={16} />
+                      </button>
+                      
                       <img
                         src={image.url}
                         alt={image.name || "Image"}
@@ -147,7 +171,7 @@ const Dashboard = () => {
                         </h3>
                         <div className="flex space-x-2 mt-2">
                           <Link
-                            to={`/editor/${image._id}`} // Added 'to' prop (assuming you want it to link somewhere)
+                            to={`/editor/${image._id}`}
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200"
                           >
                             Edit
