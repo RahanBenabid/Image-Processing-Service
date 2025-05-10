@@ -16,7 +16,7 @@ export default (app) => {
   const corsOptions = {
     origin: "http://localhost:5173", // Allow only requests from this origin
     methods: "GET,POST,PUT,DELETE", // Allow only these methods
-    // allowedHeaders: ["Content-Type", "Authorization"], // Allow only these headers
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow only these headers
   };
 
   app.use(cors(corsOptions));

@@ -16,7 +16,7 @@ function checkFileType(req, file, cb) {
 const upload = multer({
   storage: multer.memoryStorage(), // Using memory save just in case
   limits: {
-    fileSize: 1024 * 1024 * 25, // 25MB
+    fileSize: 1024 * 1024 * 10, // 10MB
   },
   fileFilter: checkFileType,
 });

@@ -6,8 +6,6 @@ export const processImage = (imageBuffer, changes) => {
   return new Promise((resolve, reject) => {
     const changesJSON = JSON.stringify(changes);
     
-    console.log("funny", changesJSON);
-
     const currentDir = path.dirname(fileURLToPath(import.meta.url));
     const scriptPath = path.join(currentDir, "../image_processing/main.py");
 
