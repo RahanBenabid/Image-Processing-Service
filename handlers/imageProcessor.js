@@ -1,10 +1,12 @@
 import path from "path";
 import { spawn } from "child_process";
-import { URL, fileURLToPath } from "url";
+import { fileURLToPath } from "url";
 
 export const processImage = (imageBuffer, changes) => {
   return new Promise((resolve, reject) => {
     const changesJSON = JSON.stringify(changes);
+    
+    console.log("funny", changesJSON);
 
     const currentDir = path.dirname(fileURLToPath(import.meta.url));
     const scriptPath = path.join(currentDir, "../image_processing/main.py");

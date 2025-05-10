@@ -69,13 +69,9 @@ const transformationValidation = (req, res, next) => {
       stripUnknown: true, // remove known keys
     });
     
-    if (error) {
+    if (err) {
       return res.status(400).json({
-        error: "Invalid transformation request",
-        details: error.details.map(err => {
-          message: err.message,
-          path: err.path,
-        })
+        error: "Invalid transformation request", err
       })
     }
     
@@ -89,4 +85,4 @@ const transformationValidation = (req, res, next) => {
   }
 };
 
-export { jsonValidation };
+export { transformationValidation };

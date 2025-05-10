@@ -15,8 +15,8 @@ export default (app) => {
   // activate cross origins
   const corsOptions = {
     origin: "http://localhost:5173", // Allow only requests from this origin
-    methods: "GET,POST", // Allow only these methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Allow only these headers
+    methods: "GET,POST,PUT,DELETE", // Allow only these methods
+    // allowedHeaders: ["Content-Type", "Authorization"], // Allow only these headers
   };
 
   app.use(cors(corsOptions));
@@ -25,4 +25,6 @@ export default (app) => {
   // Instead of applying globally, attach to specific routes
   app.post("/api/pictures/upload", uploadMiddleware);
   app.put("/api/pictures/:id", uploadMiddleware);
+
+  app.post("/api/images/preview", uploadMiddleware);
 };

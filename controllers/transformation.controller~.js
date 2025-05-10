@@ -76,22 +76,21 @@ class TransformationController {
     try {
       if (!req.files || req.files.length !== 1)
         return res.status(400).json({ error: "error in file upload" });
-      const raw = req.body.changes;
-      const changes = typeof raw === "string" ? JSON.parse(raw) : raw;
+      const changes = req.body;
       let transformedImageBuffer;
-      
+
       try {
         const file = req.files[0];
         const fileBuffer = file.buffer;
         transformedImageBuffer = await processImage(fileBuffer, changes);
-        
+
         res.set("Content-Type", "image/png");
         return res.send(transformedImageBuffer);
       } catch (err) {
         console.error("Error creating the preview: ", err.message);
         return res
-        .status(500)
-        .json({ message: "Failed to create the preview" });
+          .status(500)
+          .json({ message: "Failed to create the preview" });
       }
     } catch (err) {
       return next(err);

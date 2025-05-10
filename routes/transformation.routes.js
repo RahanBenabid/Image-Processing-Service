@@ -9,5 +9,6 @@ router.post(
   transformationValidation,
   TransformationController.transformImage,
 );
+router.post("/preview", TransformationController.showPreview);
 
 export default router;

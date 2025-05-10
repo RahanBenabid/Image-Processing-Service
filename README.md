@@ -24,6 +24,7 @@ TODO:
 - [ ] when updating, handle the image extension as needed, maybe use the python backend
 
 transformation controller
-- [ ] Replace fs.readFileSync with downloadImage in the .
+- [x] Replace fs.readFileSync with downloadImage in the .
 - [ ] Add validation for resize parameters in req.body.
 - [ ] Handle edge cases (e.g., invalid imageId, Supabase upload failures).
+- [ ] in the update image controller, stream the image instead of sending it at once, more efficient approach

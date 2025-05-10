@@ -7,7 +7,7 @@ import json
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from flask_cors import CORS #import cors
-from functions.main import process_image
+from main import process_image
 
 app = Flask(__name__)
 # Enable CORS for all routes with proper configuration

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import sys
-import _testbuffer
 import json
 import io
 from PIL import Image
@@ -73,7 +72,7 @@ def process_image(changes: dict, img: Image.Image):
   
   if 'flip' in changes:
     method = changes.get('flip', "").lower()
-    img = converter(img, mode=format_)
+    img = flip(img, mode=format_)
     
   if 'transpose' in changes:
     method = changes.get('transpose', "")
@@ -81,7 +80,7 @@ def process_image(changes: dict, img: Image.Image):
     
   if 'compress' in changes and changes.get('compress') == True:
     img = compress(img)
-    
+
   print("Image processed successfully")
   return img
   
