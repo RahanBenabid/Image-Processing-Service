@@ -1,29 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import imageService from "../services/imageService";
-import pythonService from "../services/pythonService"; // Import the new service
 import ImageTransform from "../components/ImageTransform";
-import { ArrowLeft, Download, Link, RefreshCw } from "lucide-react";
+import { ArrowLeft, Download, RefreshCw, X } from "lucide-react";
 import bgImage from "../assets/sign_inout/bg1.png";
 import { saveAs } from "file-saver";
+import { useCallback } from "react";
 
 const ImageEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [image, setImage] = useState(null); 
+  const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [transformationParams, setTransformationParams] = useState(null); 
+  const [transformationParams, setTransformationParams] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
-  const [previewLoading, setPreviewLoading] = useState(false); 
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [originalImage, setOriginalImage] = useState(null); // Store the original image data
 
   useEffect(() => {
+    // Change this condition to only check the ID
+    if (!id) return;
+
     const fetchImage = async () => {
       try {
         setLoading(true);
-        const image = await imageService.getImageById(id);
-        console.log("Image loaded:", image.picture);
-        setImage(image.picture);
+        const imageData = await imageService.getImageById(id);
+        console.log("Image loaded:", imageData.picture);
+        setImage(imageData.picture);
+        setOriginalImage(imageData.picture); // Store the original image
         setError(null);
       } catch (err) {
         console.error("Failed to fetch image:", err);
@@ -35,18 +40,16 @@ const ImageEditor = () => {
 
     fetchImage();
   }, [id]);
-  const getImageAsBase64 = async (url) => {
+
+  const fetchImageAsBlob = async (url) => {
     try {
       const response = await fetch(url);
-      const blob = await response.blob();
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return await response.blob();
     } catch (error) {
-      console.error("Error fetching image as base64:", error);
+      console.error("Error fetching image as blob:", error);
       throw error;
     }
   };
@@ -99,9 +102,11 @@ const ImageEditor = () => {
   const handleTransformComplete = async () => {
     try {
       const data = await imageService.getPictureById(id);
-      if (data.url !== image?.url) {
+      if (data && (!image || data.url !== image.url)) {
         console.log("Image was transformed, updating preview");
         setImage(data);
+        setOriginalImage(data); // Update the original image with the new transformed one
+        setPreviewImage(null); // Clear the preview
       } else {
         console.log("No change in image URL");
       }
@@ -110,7 +115,7 @@ const ImageEditor = () => {
     }
   };
 
-  // Function to preview transformation using Python directly
+  // Function to preview transformation using the backend API
   const handlePreviewTransform = async () => {
     if (!image || !transformationParams) {
       console.error("No image or transformation parameters");
@@ -119,9 +124,51 @@ const ImageEditor = () => {
 
     setPreviewLoading(true);
     try {
-      const imageData = await getImageAsBase64(image.url);
-      const processedImageData = await pythonService.processImage(imageData,transformationParams );
-      setPreviewImage(processedImageData);
+      // Create a FormData object for multipart request
+      const formData = new FormData();
+
+      // Get the image as a Blob from the URL
+      const imageBlob = await fetchImageAsBlob(originalImage.url);
+
+      // Append the image file to the form data with key 'picture'
+      formData.append(
+        "picture",
+        imageBlob,
+        originalImage.metadata?.fileName || "image.jpg",
+      );
+
+      // Convert transformationParams to a JSON string
+      const changesJson = JSON.stringify(transformationParams);
+
+      // Important: Append as 'changes' not as 'transformationParams'
+      // This matches your curl example where you use -F "changes={...}"
+      formData.append("changes", changesJson);
+
+      console.log("Sending preview request with params:", transformationParams);
+
+      // Send the request to the backend
+      const response = await fetch("http://localhost:3000/api/images/preview", {
+        method: "POST",
+        headers: {
+          // Don't set Content-Type header when using FormData - browser will set it with correct boundary
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Preview response error:", errorText);
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Get the preview image as a blob
+      const previewBlob = await response.blob();
+
+      // Create a URL for the blob
+      const previewUrl = URL.createObjectURL(previewBlob);
+      console.log("Preview image created:", previewUrl);
+      setPreviewImage(previewUrl);
     } catch (error) {
       console.error("Preview transform error:", error);
       setError("Failed to preview transformation: " + error.message);
@@ -131,9 +178,10 @@ const ImageEditor = () => {
   };
 
   // Function to handle transformation parameter updates from ImageTransform component
-  const handleTransformParamsChange = (params) => {
+  const handleTransformParamsChange = useCallback((params) => {
     setTransformationParams(params);
-  };
+    console.log("Updated transformation params:", params);
+  }, []);
 
   const handleDownload = () => {
     if (image && image.url) {
@@ -155,8 +203,14 @@ const ImageEditor = () => {
     }
   };
 
+  // Reset preview and revert to original image
+  const handleClearPreview = () => {
+    setPreviewImage(null);
+  };
+
   // Use preview image if available, otherwise use original image
-  const displayImageSrc = previewImage || (image && `${image.url}?t=${new Date().getTime()}`);
+  const displayImageSrc =
+    previewImage || (image && `${image.url}?t=${new Date().getTime()}`);
 
   return (
     <div
@@ -175,6 +229,22 @@ const ImageEditor = () => {
 
           {image && (
             <div className="flex space-x-2">
+              <button
+                onClick={handlePreviewTransform}
+                disabled={previewLoading || !transformationParams}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+                  previewLoading || !transformationParams
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-purple-700 hover:bg-purple-600"
+                }`}
+              >
+                {previewLoading ? (
+                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                ) : (
+                  <RefreshCw size={16} />
+                )}
+                <span>{previewLoading ? "Loading..." : "Preview Changes"}</span>
+              </button>
               <button
                 onClick={handleDownload}
                 className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all duration-200"
@@ -213,53 +283,51 @@ const ImageEditor = () => {
             <div className="lg:col-span-2">
               <div className="bg-gray-800 bg-opacity-70 rounded-xl overflow-hidden">
                 <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-                  <h2 className="font-semibold">
-                    {previewImage ? "Image Preview (Unsaved)" : "Image Preview"}
+                  <h2 className="font-semibold flex items-center">
+                    {previewImage ? (
+                      <>
+                        <span className="bg-purple-900 text-purple-100 text-xs px-2 py-1 rounded mr-2">
+                          PREVIEW MODE
+                        </span>
+                        Image Preview (Unsaved)
+                      </>
+                    ) : (
+                      "Image Preview"
+                    )}
                   </h2>
                   <div className="flex items-center space-x-3">
                     {previewImage && (
                       <button
-                        onClick={() => setPreviewImage(null)}
+                        onClick={handleClearPreview}
                         className="flex items-center space-x-1 text-red-400 hover:text-red-300 transition-colors"
                       >
+                        <X size={14} />
                         <span className="text-sm">Clear Preview</span>
                       </button>
                     )}
-                    <button
-                      onClick={handlePreviewTransform}
-                      disabled={previewLoading || !transformationParams}
-                      className={`flex items-center space-x-1 transition-colors ${
-                        previewLoading
-                          ? "text-gray-500 cursor-not-allowed"
-                          : !transformationParams
-                          ? "text-gray-500 cursor-not-allowed"
-                          : "text-blue-400 hover:text-blue-300"
-                      }`}
-                    >
-                      {previewLoading ? (
-                        <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full mr-1"></div>
-                      ) : (
+                    {previewImage && (
+                      <button
+                        onClick={handleTransformComplete}
+                        className="flex items-center space-x-1 text-green-400 hover:text-green-300 transition-colors"
+                      >
                         <RefreshCw size={14} />
-                      )}
-                      <span className="text-sm">
-                        {previewLoading ? "Loading..." : "Preview"}
-                      </span>
-                    </button>
-                    <button
-                      onClick={handleTransformComplete}
-                      className="flex items-center space-x-1 text-green-400 hover:text-green-300 transition-colors"
-                    >
-                      <RefreshCw size={14} />
-                      <span className="text-sm">Save & Refresh</span>
-                    </button>
+                        <span className="text-sm">Save Changes</span>
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div className="p-6 flex justify-center">
-                  <img
-                    src={displayImageSrc}
-                    alt={image.name || "Image preview"}
-                    className="max-w-full max-h-[70vh] object-contain"
-                  />
+                  {previewLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+                    </div>
+                  ) : (
+                    <img
+                      src={displayImageSrc}
+                      alt={image.name || "Image preview"}
+                      className="max-w-full max-h-[70vh] object-contain"
+                    />
+                  )}
                 </div>
                 <div className="p-4 border-t border-gray-700">
                   <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
