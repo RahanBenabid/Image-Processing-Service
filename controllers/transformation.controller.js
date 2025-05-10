@@ -66,6 +66,7 @@ class TransformationController {
 
   async showPreview(req, res, next) {
     try {
+      console.log("haha", req.body);
       if (!req.files || req.files.length !== 1)
         return res.status(400).json({ error: "error in file upload" });
       const raw = req.body.changes;

@@ -18,7 +18,7 @@ const upload = multer({
   limits: {
     fileSize: 1024 * 1024 * 10, // 10MB
   },
-  fileFilter: checkFileType,
+//fileFilter: checkFileType,
 });
 
 export default upload.array("picture");
