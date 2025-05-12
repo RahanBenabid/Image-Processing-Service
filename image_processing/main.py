@@ -15,6 +15,10 @@ from functions.compress import compress
 from functions.flip import flip
 
 def process_image(changes: dict, img: Image.Image):
+  # Store the original format
+  original_format = img.format if img.format else "PNG"
+  output_format = original_format
+  
   if 'resize' in changes:
     height = changes["resize"].get('height', 0)
     width = changes["resize"].get('width', 0)
@@ -28,7 +32,7 @@ def process_image(changes: dict, img: Image.Image):
     img = crop(img, startX=x, startY=y, endX=width, endY=height)
     
   if 'rotate' in changes:
-    degree = changes.get('rotate', 0)
+    degree = changes.get('rotate', {}).get('degrees', 0)
     img = rotate(img, angle=degree)
     
   if 'filters' in changes:
@@ -43,16 +47,19 @@ def process_image(changes: dict, img: Image.Image):
         height = thumb_data.get('height', 128)
         thumb_size = (width, height)
       img = Filters.create_thumbnail(img, size=thumb_size)
-    if filters.get('sharpen'):
-      factor = 4.0
-      if isinstance(filters.get('sharpen'), (int, float)):
-        factor = filters.get('sharpen')
-      img = Filters.sharpen_image(img, factor=factor)
+        
     if filters.get('blur'):
       radius = 2.0
       if isinstance(filters.get('blur'), (int, float)):
         radius = filters.get('blur')
       img = Filters.blur_image(img, radius=radius)
+      
+    if filters.get('sharpen'):
+      factor = 4.0
+      if isinstance(filters.get('sharpen'), (int, float)):
+        factor = filters.get('sharpen')
+      img = Filters.sharpen_image(img, factor=factor)
+      
     if filters.get('brightness'):
       factor = filters.get('brightness')
       if isinstance(factor, (int, float)):
@@ -66,23 +73,27 @@ def process_image(changes: dict, img: Image.Image):
     if filters.get('invert'):
       img = Filters.invert(img)
       
-  if 'format' in changes:
-    format_ = changes.get('format', "").upper()
-    img = converter(img, mode=format_)
+  if 'convert' in changes:
+    format_name = changes.get('convert', {}).get('format', img.format)
+    if format_name:
+      format_name = format_name.upper()
+      img = converter(img, mode=format_name)
+      output_format = format_name  # Update the output format based on conversion
   
   if 'flip' in changes:
-    method = changes.get('flip', "").lower()
-    img = flip(img, mode=format_)
+    method = changes.get('flip', {}).get('direction', "").lower()
+    img = flip(img, method=method)
     
   if 'transpose' in changes:
     method = changes.get('transpose', "")
     img = flip(img, method=method)
     
-  if 'compress' in changes and changes.get('compress') == True:
-    img = compress(img)
-
+  if 'compress' in changes:
+    percentage = changes.get('compress', {}).get('percentage', 80)
+    img = compress(img, percentage=percentage)
+    
   print("Image processed successfully")
-  return img
+  return img, output_format
   
   
 if __name__ == "__main__":
@@ -98,11 +109,14 @@ if __name__ == "__main__":
       image = Image.open(io.BytesIO(image_data))
       
       # apply changes
-      processed_img = process_image(changes, image)
+      processed_img, output_format = process_image(changes, image)
       
       # Convert back to bytes
       temporaryByte = io.BytesIO()
-      processed_img.save(temporaryByte, format="PNG")
+      sys.stderr.write(f"\nSaving with format: {output_format}\n")
+      processed_img.save(temporaryByte, format=output_format)
+      # processed_img.save(f"./image_test.{output_format.lower()}", format=output_format)
+      
       byteArr = temporaryByte.getvalue()
       
       # send back to the Node App
@@ -114,4 +128,3 @@ if __name__ == "__main__":
       sys.exit(1)
   else:
     print("No changes provided")
-    

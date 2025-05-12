@@ -8,6 +8,7 @@ import fs from "fs";
 class TransformationController {
   async transformImage(req, res, next) {
     try {
+      console.log("kys", req.body)
       const imageId = req.params.id;
       const raw = req.body.changes;
       const changes = typeof raw === "string" ? JSON.parse(raw) : raw;

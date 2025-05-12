@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from PIL import Image
+from io import BytesIO
 
 def compress(img: Image.Image, percentage: float=1.0) -> Image.Image:
 	"""
@@ -9,18 +10,13 @@ def compress(img: Image.Image, percentage: float=1.0) -> Image.Image:
 	and reload to simulate the compression without saving it to the disk.
 	"""
 	
-	img = img.convert('RGB')
+	goalpercentage = 100 - percentage
 	
-	if percentage != 1.0:
-		new_size = tuple(int(ti*percentage) for ti in img.size)
-		(width, height) = new_size
-		img = resize(img, width=width, height=height)
-	
-	
-	from io import BytesIO
 	buffer = BytesIO()
-	img.save(buffer, format="JPEG", quality=90, optimize=True)
+	img.save(buffer, format="JPEG", quality=goalpercentage, optimize=True)
 	buffer.seek(0)
+	
+	print("kys")
 	
 	compressed_img = Image.open(buffer)
 		
