@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import transformService from "../services/transformService";
 import {
   Sliders,
@@ -9,14 +9,20 @@ import {
   Image,
   Palette,
   Type,
-  Droplets,
 } from "lucide-react";
+import { saveAs } from "file-saver";
 
-const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
+const ImageTransform = ({
+  imageId,
+  onTransformComplete,
+  onParamsChange,
+  previewImageUrl,
+}) => {
   const [activeTab, setActiveTab] = useState("resize");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   // Track all active transformations instead of just the current tab
   const [transformParams, setTransformParams] = useState({
@@ -25,11 +31,15 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
     rotate: { degrees: 90 },
     flip: { direction: "horizontal" },
     filters: {
+      blackAndWhite: false,
+      sepia: false,
+      invert: false,
+      brightness: 0,
+      contrast: 0,
       blur: 0,
-      black_and_white: false,
-      sharpen: false,
+      sharpen: 0,
     },
-    compress: { quality: 80 },
+    compress: { percentage: 80 },
     convert: { format: "jpeg" },
     watermark: { text: "Watermark", position: "bottom-right" },
   });
@@ -46,20 +56,25 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
     watermark: false,
   });
 
-  useEffect(() => {
-    // Only send transformations that are active
+  // Prepare active transformations for backend
+  const prepareActiveTransformations = useMemo(() => {
     const activeParams = {};
-
     Object.keys(activeTransformations).forEach((key) => {
       if (activeTransformations[key]) {
         if (key === "filters") {
           // Special handling for filters
           const activeFilters = {};
-          if (transformParams.filters.black_and_white)
-            activeFilters.black_and_white = true;
-          if (transformParams.filters.sharpen) activeFilters.sharpen = true;
-          if (transformParams.filters.blur > 0)
-            activeFilters.blur = transformParams.filters.blur;
+          const filters = transformParams.filters;
+
+          // Add active filters and their non-zero values
+          if (filters.blackAndWhite) activeFilters.blackAndWhite = true;
+          if (filters.sepia) activeFilters.sepia = true;
+          if (filters.invert) activeFilters.invert = true;
+          if (filters.sharpen > 0) activeFilters.sharpen = filters.sharpen;
+          if (filters.brightness > 0)
+            activeFilters.brightness = filters.brightness;
+          if (filters.contrast > 0) activeFilters.contrast = filters.contrast;
+          if (filters.blur > 0) activeFilters.blur = filters.blur;
 
           if (Object.keys(activeFilters).length > 0) {
             activeParams.filters = activeFilters;
@@ -77,35 +92,162 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
       }
     });
 
-    if (onParamsChange && Object.keys(activeParams).length > 0) {
-      onParamsChange(activeParams);
-    }
-  }, [transformParams, activeTransformations, onParamsChange]);
+    return activeParams;
+  }, [transformParams, activeTransformations]);
 
-  const handleTransform = async () => {
+  // Trigger onParamsChange when active transformations change
+  useEffect(() => {
+    if (
+      onParamsChange &&
+      Object.keys(prepareActiveTransformations).length > 0
+    ) {
+      onParamsChange(prepareActiveTransformations);
+    }
+  }, [prepareActiveTransformations, onParamsChange]);
+
+  // Handle preview functionality
+  const handlePreview = async () => {
     setIsProcessing(true);
     setError(null);
     setSuccess(null);
 
     try {
-      // Get only the active transformations
-      const activeParams = {};
-      Object.keys(activeTransformations).forEach((key) => {
-        if (activeTransformations[key]) {
-          activeParams[key] = transformParams[key];
-        }
-      });
+      // Validate image ID
+      if (!imageId) {
+        throw new Error("No image selected for preview");
+      }
 
-      await transformService.applyTransformations(imageId, activeParams);
-      setSuccess("Transformations applied successfully!");
-      if (onTransformComplete) onTransformComplete();
+      // Call the preview service method
+      const previewResult = await transformService.previewTransformations(
+        imageId,
+        prepareActiveTransformations,
+      );
+
+      // Update preview URL
+      if (previewResult && previewResult.previewUrl) {
+        setPreviewUrl(previewResult.previewUrl);
+        setSuccess("Preview generated successfully!");
+      } else {
+        throw new Error("No preview image generated");
+      }
     } catch (err) {
-      setError(err.message || "Failed to apply transformations");
+      console.error("Preview error:", err);
+      setError(err.message || "Failed to generate preview");
+      setPreviewUrl(null);
     } finally {
       setIsProcessing(false);
     }
   };
 
+  // Transform and download image
+  const transformImage = async () => {
+    setIsProcessing(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // Validate image ID
+      if (!imageId) {
+        throw new Error("No image selected for transformation");
+      }
+
+      // Prepare transformations to apply
+      const transformationsToApply = Object.entries(activeTransformations)
+        .filter(([_, isActive]) => isActive)
+        .map(([type]) => {
+          const params = transformParams[type];
+
+          // Special handling for filters
+          if (type === "filters") {
+            const activeFilters = {};
+            if (params.blackAndWhite) activeFilters.filter = "grayscale";
+            if (params.sharpen > 0) activeFilters.filter = "sharpen";
+            return { type: "filter", params: activeFilters };
+          }
+
+          // Mapping other transformations
+          switch (type) {
+            case "resize":
+              return {
+                type,
+                params: { width: params.width, height: params.height },
+              };
+            case "crop":
+              return {
+                type,
+                params: {
+                  x: params.x,
+                  y: params.y,
+                  width: params.width,
+                  height: params.height,
+                },
+              };
+            case "rotate":
+              return { type, params: { degrees: params.degrees } };
+            case "flip":
+              return { type, params: { direction: params.direction } };
+            case "compress":
+              return { type, params: {} };
+            case "convert":
+              return { type, params: { format: params.format } };
+            case "watermark":
+              return {
+                type,
+                params: { text: params.text, position: params.position },
+              };
+            default:
+              return null;
+          }
+        })
+        .filter(Boolean);
+
+      // Apply transformations sequentially
+      let finalTransformedImage;
+      for (const transformation of transformationsToApply) {
+        try {
+          const result = await transformService.applyTransformation(
+            imageId,
+            transformation.type,
+            transformation.params,
+          );
+          finalTransformedImage = result;
+        } catch (err) {
+          console.error(
+            `Error applying ${transformation.type} transformation:`,
+            err,
+          );
+          throw err;
+        }
+      }
+
+      // Handle successful transformation
+      if (finalTransformedImage && finalTransformedImage.url) {
+        // Download the transformed image
+        saveAs(
+          finalTransformedImage.url,
+          finalTransformedImage.filename || "transformed-image.jpg",
+        );
+
+        // Set success message
+        setSuccess("Image transformed successfully!");
+
+        // Call onTransformComplete if provided
+        if (onTransformComplete) {
+          onTransformComplete(finalTransformedImage);
+        }
+      } else {
+        throw new Error("No transformed image URL received");
+      }
+    } catch (err) {
+      // Handle any errors during transformation
+      console.error("Transformation error:", err);
+      setError(err.message || "Failed to transform image");
+    } finally {
+      // Reset processing state
+      setIsProcessing(false);
+    }
+  };
+  // Toggle transformation on/off
   const toggleTransformation = (type) => {
     setActiveTransformations((prev) => ({
       ...prev,
@@ -113,6 +255,7 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
     }));
   };
 
+  // Update transformation parameters
   const updateParams = (type, key, value) => {
     setTransformParams((prev) => ({
       ...prev,
@@ -128,6 +271,7 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
     }
   };
 
+  // Update filter parameters specifically
   const updateFilterParams = (filter, value) => {
     setTransformParams((prev) => ({
       ...prev,
@@ -143,6 +287,7 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
     }
   };
 
+  // Render tab content based on active tab
   const renderTabContent = () => {
     const params = transformParams[activeTab];
     const isActive = activeTransformations[activeTab];
@@ -237,24 +382,36 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
             active: params.direction === "vertical",
             onClick: () => updateParams("flip", "direction", "vertical"),
           },
+          {
+            label: "both",
+            icon: <RefreshCw size={20} className="rotate-90" />,
+            active: params.direction === "both",
+            onClick: () => updateParams("flip", "direction", "both"),
+          },
         ],
       },
       filters: {
         options: [
           {
             label: "Black & White",
-            active: transformParams.filters.black_and_white,
+            active: transformParams.filters.blackAndWhite,
             onClick: () =>
               updateFilterParams(
-                "black_and_white",
-                !transformParams.filters.black_and_white,
+                "blackAndWhite",
+                !transformParams.filters.blackAndWhite,
               ),
           },
           {
-            label: "Sharpen",
-            active: transformParams.filters.sharpen,
+            label: "Sepia",
+            active: transformParams.filters.sepia,
             onClick: () =>
-              updateFilterParams("sharpen", !transformParams.filters.sharpen),
+              updateFilterParams("sepia", !transformParams.filters.sepia),
+          },
+          {
+            label: "Invert",
+            active: transformParams.filters.invert,
+            onClick: () =>
+              updateFilterParams("invert", !transformParams.filters.invert),
           },
         ],
         inputs: [
@@ -262,23 +419,50 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
             label: `Blur: ${transformParams.filters.blur}`,
             type: "range",
             min: 0,
-            max: 10,
+            max: 100,
             value: transformParams.filters.blur,
             onChange: (e) =>
               updateFilterParams("blur", parseInt(e.target.value)),
+          },
+          {
+            label: `Brightness: ${transformParams.filters.brightness}`,
+            type: "range",
+            min: 0,
+            max: 5,
+            value: transformParams.filters.brightness,
+            onChange: (e) =>
+              updateFilterParams("brightness", parseInt(e.target.value)),
+          },
+          {
+            label: `Sharpen: ${transformParams.filters.sharpen}`,
+            type: "range",
+            min: 0,
+            max: 10,
+            value: transformParams.filters.sharpen,
+            onChange: (e) =>
+              updateFilterParams("sharpen", parseInt(e.target.value)),
+          },
+          {
+            label: `Contrast: ${transformParams.filters.contrast}`,
+            type: "range",
+            min: 0,
+            max: 5,
+            value: transformParams.filters.contrast,
+            onChange: (e) =>
+              updateFilterParams("contrast", parseInt(e.target.value)),
           },
         ],
       },
       compress: {
         inputs: [
           {
-            label: `Quality: ${params.quality}%`,
+            label: `Percentage: ${params.percentage}%`,
             type: "range",
             min: 10,
             max: 100,
-            value: params.quality,
+            value: params.percentage,
             onChange: (e) =>
-              updateParams("compress", "quality", parseInt(e.target.value)),
+              updateParams("compress", "percentage", parseInt(e.target.value)),
           },
         ],
       },
@@ -335,7 +519,10 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
               onChange={() => toggleTransformation(activeTab)}
               className="sr-only peer"
             />
-            <div className="relative w-11 h-6 bg-n-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+            <div
+              className="relative w-11 h-6 bg-n-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300/20 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[
+              2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"
+            ></div>
             <span className="ms-3 text-sm font-medium text-gray-300">
               {isActive ? "Enabled" : "Disabled"}
             </span>
@@ -426,7 +613,7 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
             </div>
           )}
 
-          {/* Preview button - moved from individual transformations to global */}
+          {/* Transformation and Preview Buttons */}
           <div className="mt-8 pt-6 border-t border-n-6">
             <div className="flex flex-col gap-3">
               <div className="text-center text-xs text-gray-400 mb-2">
@@ -448,7 +635,7 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
               </div>
 
               <button
-                onClick={() => handlePreview()}
+                onClick={handlePreview}
                 disabled={
                   isProcessing ||
                   Object.values(activeTransformations).every((v) => !v)
@@ -485,12 +672,12 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
                     Processing...
                   </>
                 ) : (
-                  "Preview All Changes"
+                  "Preview Changes"
                 )}
               </button>
 
               <button
-                onClick={() => handleTransform()}
+                onClick={transformImage}
                 disabled={
                   isProcessing ||
                   Object.values(activeTransformations).every((v) => !v)
@@ -527,24 +714,33 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
                     Processing...
                   </>
                 ) : (
-                  "Save All Changes"
+                  "Transform & Download"
                 )}
               </button>
             </div>
+
+            {/* Preview Image Display */}
+            {previewUrl && (
+              <div className="mt-6 border border-n-5 rounded-lg overflow-hidden">
+                <div className="bg-n-6 p-3 text-sm text-n-3 border-b border-n-5">
+                  Preview of Transformations
+                </div>
+                <img
+                  src={previewUrl}
+                  alt="Transformed Preview"
+                  className="w-full max-h-[400px] object-contain"
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
     );
   };
 
-  // This function is what's needed to send the preview request
-  const handlePreview = () => {
-    // This will trigger the parent's preview function via the onParamsChange callback
-    console.log("Preview requested with parameters:", transformParams);
-  };
-
   return (
     <div className="bg-n-8 rounded-xl overflow-hidden border border-n-6">
+      {/* Error Handling */}
       {error && (
         <div className="bg-red-900/30 border-l-4 border-red-500 p-4">
           <p className="text-red-300 flex items-center">
@@ -564,6 +760,7 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
         </div>
       )}
 
+      {/* Success Handling */}
       {success && (
         <div className="bg-green-900/30 border-l-4 border-green-500 p-4">
           <p className="text-green-300 flex items-center">
@@ -583,6 +780,7 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
         </div>
       )}
 
+      {/* Tab Navigation */}
       <div className="grid grid-cols-4 md:grid-cols-8 gap-1 bg-n-7 p-1">
         {[
           "resize",
@@ -626,9 +824,9 @@ const ImageTransform = ({ imageId, onTransformComplete, onParamsChange }) => {
         ))}
       </div>
 
+      {/* Render Tab Content */}
       {renderTabContent()}
     </div>
   );
 };
-
 export default ImageTransform;

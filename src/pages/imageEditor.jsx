@@ -199,7 +199,7 @@ const ImageEditor = () => {
     const transformedUrl = await transformImage();
     if (transformedUrl) {
       console.log("Downloading transformed image:", transformedUrl);
-      saveAs(transformedUrl, "transformed-image.jpg");
+      saveAs(transformedUrl, "transformed.jpg");
     }
   };
 
@@ -363,16 +363,6 @@ const ImageEditor = () => {
                         </span>
                       </div>
                     )}
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-gray-700">
-                    <button
-                      onClick={handleTransformAndDownload}
-                      className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-all duration-200"
-                    >
-                      <Download size={16} />
-                      <span>Transform & Download (50x50)</span>
-                    </button>
                   </div>
                 </div>
               </div>
