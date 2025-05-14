@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post(
   "/:id/transform",
-//transformationValidation,
+  transformationValidation,
   TransformationController.transformImage,
 );
 router.post("/preview", TransformationController.showPreview);

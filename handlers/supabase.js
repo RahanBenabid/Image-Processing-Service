@@ -121,8 +121,8 @@ export const downloadImage = async (filePath) => {
     const buffer = Buffer.from(await data.arrayBuffer());
     const filename = filePath.split("/").pop();
 
-    //      console.log(filename, buffer);
-    await fs.writeFile(`/Users/RahanBen/Downloads/test/${filename}`, buffer);
+        //  console.log(filename, buffer);
+  //  await fs.writeFile(`/Users/RahanBen/Downloads/test/${filename}`, buffer);
 
     return buffer;
   } catch (err) {
