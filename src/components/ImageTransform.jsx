@@ -11,19 +11,58 @@ import {
   Type,
 } from "lucide-react";
 import { saveAs } from "file-saver";
+import imageService from "../services/imageService";
 
 const ImageTransform = ({
   imageId,
   onTransformComplete,
   onParamsChange,
   previewImageUrl,
+  onPreviewChange,
 }) => {
   const [activeTab, setActiveTab] = useState("resize");
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [originalImage, setOriginalImage] = useState(null)
+  const [image, setImage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  
+  useEffect(() => {
+    if (!imageId) return;
 
+    const fetchImage = async () => {
+      try {
+        setLoading(true);
+        const imageData = await imageService.getImageById(imageId);
+        setImage(imageData.picture);
+        setOriginalImage(imageData.picture); 
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch image:", err);
+        setError("Failed to load image. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImage();
+  }, [imageId]);
+  const fetchImageAsBlob = async (url) => {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return await response.blob();
+    } catch (error) {
+      console.error("Error fetching image as blob:", error);
+      throw error;
+    }
+  };
   // Track all active transformations instead of just the current tab
   const [transformParams, setTransformParams] = useState({
     resize: { width: 800, height: 600, maintainAspectRatio: true },
@@ -62,11 +101,9 @@ const ImageTransform = ({
     Object.keys(activeTransformations).forEach((key) => {
       if (activeTransformations[key]) {
         if (key === "filters") {
-          // Special handling for filters
+
           const activeFilters = {};
           const filters = transformParams.filters;
-
-          // Add active filters and their non-zero values
           if (filters.blackAndWhite) activeFilters.blackAndWhite = true;
           if (filters.sepia) activeFilters.sepia = true;
           if (filters.invert) activeFilters.invert = true;
@@ -80,7 +117,6 @@ const ImageTransform = ({
             activeParams.filters = activeFilters;
           }
         } else {
-          // Convert to snake_case for backend compatibility
           const convertedParams = { ...transformParams[key] };
           if (key === "resize" && "maintainAspectRatio" in convertedParams) {
             convertedParams.maintain_aspect_ratio =
@@ -95,7 +131,6 @@ const ImageTransform = ({
     return activeParams;
   }, [transformParams, activeTransformations]);
 
-  // Trigger onParamsChange when active transformations change
   useEffect(() => {
     if (
       onParamsChange &&
@@ -105,145 +140,116 @@ const ImageTransform = ({
     }
   }, [prepareActiveTransformations, onParamsChange]);
 
-  // Handle preview functionality
-  const handlePreview = async () => {
-    setIsProcessing(true);
-    setError(null);
-    setSuccess(null);
+  const handlePreviewTransform = async () => {
+  if (!imageId || !prepareActiveTransformations) {
+    console.error("No image or transformation parameters");
+    return;
+  }
 
+  setPreviewLoading(true);
+  try {
+    const formData = new FormData();
+    const imageBlob = await fetchImageAsBlob(originalImage.url);
+   
+    formData.append(
+      "picture",
+      imageBlob,
+      originalImage.metadata?.fileName || "image.jpg",
+    );
+    const changesJson = JSON.stringify(prepareActiveTransformations);
+    formData.append("changes", changesJson);
+
+    console.log("Sending preview request with params:", prepareActiveTransformations);
+    const response = await fetch("http://localhost:3000/api/images/preview", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Preview response error:", errorText);
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const previewBlob = await response.blob();
+    const previewUrl = URL.createObjectURL(previewBlob);
+    console.log("Preview image created:", previewUrl);
+    setPreviewImage(previewUrl);
+    if (onPreviewChange) {
+      onPreviewChange(previewUrl);
+    }
+  } catch (error) {
+    console.error("Preview transform error:", error);
+    setError("Failed to preview transformation: " + error.message);
+  } finally {
+    setPreviewLoading(false);
+  }
+};
+
+  const transformImage = async () => {
     try {
-      // Validate image ID
       if (!imageId) {
-        throw new Error("No image selected for preview");
+        console.error("No image to transform");
+        setError("No image selected for transformation");
+        return null;
       }
-
-      // Call the preview service method
-      const previewResult = await transformService.previewTransformations(
-        imageId,
-        prepareActiveTransformations,
+  
+      if (Object.keys(prepareActiveTransformations).length === 0) {
+        console.error("No transformation parameters selected");
+        setError("Please select at least one transformation before proceeding");
+        return null;
+      }
+      setIsProcessing(true);
+      setError(null);
+      const formData = new FormData();
+      const imageBlob = await fetchImageAsBlob(originalImage.url);
+      formData.append(
+        "picture",
+        imageBlob,
+        originalImage.metadata?.fileName || "image.jpg"
       );
 
-      // Update preview URL
-      if (previewResult && previewResult.previewUrl) {
-        setPreviewUrl(previewResult.previewUrl);
-        setSuccess("Preview generated successfully!");
-      } else {
-        throw new Error("No preview image generated");
-      }
-    } catch (err) {
-      console.error("Preview error:", err);
-      setError(err.message || "Failed to generate preview");
-      setPreviewUrl(null);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+      const changesJson = JSON.stringify(prepareActiveTransformations);
+      formData.append("changes", changesJson);
 
-  // Transform and download image
-  const transformImage = async () => {
-    setIsProcessing(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      // Validate image ID
-      if (!imageId) {
-        throw new Error("No image selected for transformation");
-      }
-
-      // Prepare transformations to apply
-      const transformationsToApply = Object.entries(activeTransformations)
-        .filter(([_, isActive]) => isActive)
-        .map(([type]) => {
-          const params = transformParams[type];
-
-          // Special handling for filters
-          if (type === "filters") {
-            const activeFilters = {};
-            if (params.blackAndWhite) activeFilters.filter = "grayscale";
-            if (params.sharpen > 0) activeFilters.filter = "sharpen";
-            return { type: "filter", params: activeFilters };
-          }
-
-          // Mapping other transformations
-          switch (type) {
-            case "resize":
-              return {
-                type,
-                params: { width: params.width, height: params.height },
-              };
-            case "crop":
-              return {
-                type,
-                params: {
-                  x: params.x,
-                  y: params.y,
-                  width: params.width,
-                  height: params.height,
-                },
-              };
-            case "rotate":
-              return { type, params: { degrees: params.degrees } };
-            case "flip":
-              return { type, params: { direction: params.direction } };
-            case "compress":
-              return { type, params: {} };
-            case "convert":
-              return { type, params: { format: params.format } };
-            case "watermark":
-              return {
-                type,
-                params: { text: params.text, position: params.position },
-              };
-            default:
-              return null;
-          }
-        })
-        .filter(Boolean);
-
-      // Apply transformations sequentially
-      let finalTransformedImage;
-      for (const transformation of transformationsToApply) {
-        try {
-          const result = await transformService.applyTransformation(
-            imageId,
-            transformation.type,
-            transformation.params,
-          );
-          finalTransformedImage = result;
-        } catch (err) {
-          console.error(
-            `Error applying ${transformation.type} transformation:`,
-            err,
-          );
-          throw err;
+      const response = await fetch(
+        `http://localhost:3000/api/images/${imageId}/transform`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(prepareActiveTransformations),
         }
-      }
-
-      // Handle successful transformation
-      if (finalTransformedImage && finalTransformedImage.url) {
-        // Download the transformed image
-        saveAs(
-          finalTransformedImage.url,
-          finalTransformedImage.filename || "transformed-image.jpg",
+      );
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message || `HTTP error! Status: ${response.status}`
         );
-
-        // Set success message
-        setSuccess("Image transformed successfully!");
-
-        // Call onTransformComplete if provided
-        if (onTransformComplete) {
-          onTransformComplete(finalTransformedImage);
-        }
-      } else {
-        throw new Error("No transformed image URL received");
       }
-    } catch (err) {
-      // Handle any errors during transformation
-      console.error("Transformation error:", err);
-      setError(err.message || "Failed to transform image");
+  
+      const data = await response.json();
+  
+      if (data.publicUrl) {
+        setPreviewImage(data.publicUrl);
+        saveAs(data.publicUrl, "transformed-image.jpg");
+        onTransformComplete();
+        setSuccess("Image transformed and downloaded successfully!");
+        return data.publicUrl;
+      } else {
+        console.warn("No publicUrl in response:", data);
+        setError("Image transformed, but no public URL provided.");
+        return null;
+      }
+    } catch (error) {
+      console.error("Transform error:", error);
+      setError(error.message || "Failed to transform image");
+      return null;
     } finally {
-      // Reset processing state
       setIsProcessing(false);
     }
   };
@@ -261,8 +267,6 @@ const ImageTransform = ({
       ...prev,
       [type]: { ...prev[type], [key]: value },
     }));
-
-    // Auto-enable the transformation when a parameter is changed
     if (!activeTransformations[type]) {
       setActiveTransformations((prev) => ({
         ...prev,
@@ -278,7 +282,6 @@ const ImageTransform = ({
       filters: { ...prev.filters, [filter]: value },
     }));
 
-    // Auto-enable filters when a filter is changed
     if (!activeTransformations.filters) {
       setActiveTransformations((prev) => ({
         ...prev,
@@ -320,13 +323,13 @@ const ImageTransform = ({
             onChange: (e) =>
               updateParams("resize", "height", parseInt(e.target.value) || 0),
           },
-          {
-            label: "Maintain aspect ratio",
-            type: "checkbox",
-            checked: params.maintainAspectRatio,
-            onChange: (e) =>
-              updateParams("resize", "maintainAspectRatio", e.target.checked),
-          },
+          // {
+          //   label: "Maintain aspect ratio",
+          //   type: "checkbox",
+          //   checked: params.maintainAspectRatio,
+          //   onChange: (e) =>
+          //     updateParams("resize", "maintainAspectRatio", e.target.checked),
+          // },
         ],
       },
       crop: {
@@ -613,7 +616,6 @@ const ImageTransform = ({
             </div>
           )}
 
-          {/* Transformation and Preview Buttons */}
           <div className="mt-8 pt-6 border-t border-n-6">
             <div className="flex flex-col gap-3">
               <div className="text-center text-xs text-gray-400 mb-2">
@@ -635,7 +637,7 @@ const ImageTransform = ({
               </div>
 
               <button
-                onClick={handlePreview}
+                onClick={handlePreviewTransform}
                 disabled={
                   isProcessing ||
                   Object.values(activeTransformations).every((v) => !v)

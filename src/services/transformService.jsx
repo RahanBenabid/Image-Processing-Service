@@ -62,9 +62,13 @@ const transformationService = {
       case "filter":
         transformations.push({
           filters: {
-            black_and_white: params.filter === "grayscale",
+            blackAndWhite: params.filter === "blackAndWhite",
             sharpen: params.filter === "sharpen",
-            thumbnail: params.filter === "thumbnail",
+            sepia: params.filter === "sepia",
+            blur: params.filter === "blur",
+            brightness: params.filter === "brightness",
+            contrast: params.filter === "contrast",
+            invert: params.filter === "invert",
           },
         });
         break;
@@ -77,7 +81,7 @@ const transformationService = {
 
       case "compress":
         transformations.push({
-          compress: true,
+        compress: params.percentage,
           // quality: params.quality
         });
         break;
@@ -85,7 +89,6 @@ const transformationService = {
       case "watermark":
         throw new Error("Watermark not yet implemented");
     }
-
     return transformations;
   },
 

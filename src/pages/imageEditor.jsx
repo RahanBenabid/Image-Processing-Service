@@ -101,12 +101,12 @@ const ImageEditor = () => {
 
   const handleTransformComplete = async () => {
     try {
-      const data = await imageService.getPictureById(id);
+      const data = await imageService.getImageById(id);
       if (data && (!image || data.url !== image.url)) {
         console.log("Image was transformed, updating preview");
         setImage(data);
-        setOriginalImage(data); // Update the original image with the new transformed one
-        setPreviewImage(null); // Clear the preview
+        setOriginalImage(data); 
+        setPreviewImage(null); 
       } else {
         console.log("No change in image URL");
       }
@@ -114,8 +114,6 @@ const ImageEditor = () => {
       console.error("Failed to refresh image:", err);
     }
   };
-
-  // Function to preview transformation using the backend API
   const handlePreviewTransform = async () => {
     if (!image || !transformationParams) {
       console.error("No image or transformation parameters");
@@ -124,33 +122,19 @@ const ImageEditor = () => {
 
     setPreviewLoading(true);
     try {
-      // Create a FormData object for multipart request
       const formData = new FormData();
-
-      // Get the image as a Blob from the URL
       const imageBlob = await fetchImageAsBlob(originalImage.url);
-
-      // Append the image file to the form data with key 'picture'
       formData.append(
         "picture",
         imageBlob,
         originalImage.metadata?.fileName || "image.jpg",
       );
-
-      // Convert transformationParams to a JSON string
       const changesJson = JSON.stringify(transformationParams);
-
-      // Important: Append as 'changes' not as 'transformationParams'
-      // This matches your curl example where you use -F "changes={...}"
       formData.append("changes", changesJson);
-
       console.log("Sending preview request with params:", transformationParams);
-
-      // Send the request to the backend
       const response = await fetch("http://localhost:3000/api/images/preview", {
         method: "POST",
         headers: {
-          // Don't set Content-Type header when using FormData - browser will set it with correct boundary
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: formData,
@@ -161,11 +145,8 @@ const ImageEditor = () => {
         console.error("Preview response error:", errorText);
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
-
-      // Get the preview image as a blob
       const previewBlob = await response.blob();
 
-      // Create a URL for the blob
       const previewUrl = URL.createObjectURL(previewBlob);
       console.log("Preview image created:", previewUrl);
       setPreviewImage(previewUrl);
@@ -177,38 +158,29 @@ const ImageEditor = () => {
     }
   };
 
-  // Function to handle transformation parameter updates from ImageTransform component
   const handleTransformParamsChange = useCallback((params) => {
     setTransformationParams(params);
     console.log("Updated transformation params:", params);
   }, []);
 
-  const handleDownload = () => {
-    if (image && image.url) {
-      console.log("Downloading image:", image.url);
-      // Use original file name if available, otherwise default name
-      const fileName =
-        (image.metadata && image.metadata.fileName) || "downloaded-image.jpg";
-      saveAs(image.url, fileName);
+  const handleDownload = async () => {
+    const url = await transformImage();
+    if (url) {
+      
+      const fileName = "downloaded-image.jpg";
+      saveAs(url, fileName);
+      setImage({ ...image, url });
     } else {
       console.error("No image URL available for download");
     }
   };
 
-  const handleTransformAndDownload = async () => {
-    const transformedUrl = await transformImage();
-    if (transformedUrl) {
-      console.log("Downloading transformed image:", transformedUrl);
-      saveAs(transformedUrl, "transformed.jpg");
-    }
-  };
-
-  // Reset preview and revert to original image
   const handleClearPreview = () => {
     setPreviewImage(null);
   };
-
-  // Use preview image if available, otherwise use original image
+  const handlePreviewChange = (newPreviewUrl) => {
+    setPreviewImage(newPreviewUrl);
+  };
   const displayImageSrc =
     previewImage || (image && `${image.url}?t=${new Date().getTime()}`);
 
@@ -227,33 +199,6 @@ const ImageEditor = () => {
             <span className="hidden md:block">Back to Dashboard</span>
           </button>
 
-          {image && (
-            <div className="flex space-x-2">
-              <button
-                onClick={handlePreviewTransform}
-                disabled={previewLoading || !transformationParams}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-                  previewLoading || !transformationParams
-                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                    : "bg-purple-700 hover:bg-purple-600"
-                }`}
-              >
-                {previewLoading ? (
-                  <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                ) : (
-                  <RefreshCw size={16} />
-                )}
-                <span>{previewLoading ? "Loading..." : "Preview Changes"}</span>
-              </button>
-              <button
-                onClick={handleDownload}
-                className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-all duration-200"
-              >
-                <Download size={16} />
-                <span>Download</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {loading ? (
@@ -305,15 +250,7 @@ const ImageEditor = () => {
                         <span className="text-sm">Clear Preview</span>
                       </button>
                     )}
-                    {previewImage && (
-                      <button
-                        onClick={handleTransformComplete}
-                        className="flex items-center space-x-1 text-green-400 hover:text-green-300 transition-colors"
-                      >
-                        <RefreshCw size={14} />
-                        <span className="text-sm">Save Changes</span>
-                      </button>
-                    )}
+                    
                   </div>
                 </div>
                 <div className="p-6 flex justify-center">
@@ -373,6 +310,7 @@ const ImageEditor = () => {
                 imageId={id}
                 onTransformComplete={handleTransformComplete}
                 onParamsChange={handleTransformParamsChange}
+                onPreviewChange={handlePreviewChange}
               />
             </div>
           </div>
