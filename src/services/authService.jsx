@@ -3,13 +3,11 @@ import api from "./api";
 const authService = {
   register: async ({ fullName, email, password }) => {
     try {
-      console.log("looooog: ", fullName, email, password);
       const response = await api.post("/api/users/register", {
         username: fullName,
         email,
         password,
       });
-      console.log("hi", response);
       return response;
     } catch (error) {
       console.error("Registration error:", error);
@@ -20,14 +18,12 @@ const authService = {
   login: async (email, password) => {
     try {
       const response = await api.post("/api/users/login", { email, password });
-      console.log("Auth service login response:", response);
 
       return {
         user: response.user,
         token: response.token,
       };
     } catch (error) {
-      console.log("sexy log", email, password);
       console.error("Login error:", error);
       throw new Error(error.response?.data?.message || "Invalid credentials");
     }

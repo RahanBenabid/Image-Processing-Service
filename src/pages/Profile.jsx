@@ -8,28 +8,13 @@ const Profile = () => {
   const { currentUser, isLoading } = useAuth();
   const [userInfo, setInfo] = useState({'user': {}}); 
   const navigate = useNavigate();
-  // async function fetchUser() {
-  //   try {
-  //     if (currentUser) {
-  //       const user = await userService.getUser(currentUser.id);
-  //       console.log('finalllllyyyyyy: ', user);
-  //       setInfo(user.user); 
-  //       console.log('infoooo:',userInfo);
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching user:', error.message);
-  //   }
-  // }
-  // fetchUser(); 
+  
   useEffect(() => {
-  // console.log('starteeeeeeeeeeeeeed');
   
   async function fetchUser() {
     try {
       if (currentUser) {
-        // console.log('process started ....');
         const user = await userService.getUser(currentUser.id);
-        // console.log('finalllllyyyyyy: ', user);
         setInfo(user.user); 
       }
     } catch (error) {

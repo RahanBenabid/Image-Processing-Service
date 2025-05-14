@@ -33,7 +33,6 @@ const Dashboard = () => {
     fetchImages();
   }, []);
   
-  console.log("Current user:", currentUser);
   const handleFileChange = (e) => {
     if (e.target.files?.[0]) {
       setFile(e.target.files[0]);
@@ -53,10 +52,8 @@ const Dashboard = () => {
     setUploadError(null);
 
     try {
-      console.log("Uploading file:", file.name, file.type, file.size);
 
       const response = await imageService.uploadImage(file);
-      console.log("Upload response:", response);
 
       // Fetch images again after upload
       const data = await imageService.getAllImages();
@@ -87,8 +84,6 @@ const Dashboard = () => {
       setImages(updateImages);
       alert("Image removed successfully");
 
-      console.log("Remove image:", imageId);
-      
     } catch (error) {
       console.error("Failed to remove image:", error);
       alert("Failed to remove image, try again please!");

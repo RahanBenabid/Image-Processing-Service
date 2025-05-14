@@ -5,13 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 const ProfileSettings = ({user}) => {
 
   const { currentUser, updateProfile } = useAuth();
-  // const [userInfo, setuserInfo]= useState([]);
-  // useEffect(() => {
-  // const user= userService.getUser(currentUser.id)
-  // setuserInfo(user);
-   console.log('UseeeeeeerInfo:', user);
-  // }, [userInfo]);
-  // console.log('Current User:', currentUser);
+ 
   const [formData, setFormData] = useState({
     username: user?.username || '',
     email: user?.email || '',

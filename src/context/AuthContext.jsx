@@ -98,7 +98,6 @@ const verifyToken = () => {
   const register = async (username, email, password) => {
     setLoading(true);
     setError(null);
-    // console.log("helloooo", username, email, password);
     try {
       const response = await authService.register(username, email, password);
       setCurrentUser(response.user);
