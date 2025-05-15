@@ -235,7 +235,12 @@ const ImageTransform = ({
       console.log('hooooy', data.publicUrl)
       if (data.publicUrl) {
         setPreviewImage(data.publicUrl);
-        saveAs(data.publicUrl, "transformed-image.jpg");
+        const originalName = originalImage.metadata?.fileName || "image";
+        const basename = originalName.split('.')[0];
+        const format = prepareActiveTransformations.convert?.format || originalName.split('.').pop() || 'jpg';
+        const newFileName = `${basename}-transformed.${format}`;
+
+        saveAs(data.publicUrl, newFileName);
         onTransformComplete();
         setSuccess("Image transformed and downloaded successfully!");
         return data.publicUrl;
