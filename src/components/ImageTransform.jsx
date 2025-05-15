@@ -210,7 +210,6 @@ const ImageTransform = ({
         imageBlob,
         originalImage.metadata?.fileName || "image.jpg"
       );
-
       const changesJson = JSON.stringify(prepareActiveTransformations);
       formData.append("changes", changesJson);
 
@@ -222,7 +221,7 @@ const ImageTransform = ({
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify(prepareActiveTransformations),
+          body: JSON.stringify({ changes: prepareActiveTransformations }),
         }
       );
       if (!response.ok) {
@@ -233,7 +232,7 @@ const ImageTransform = ({
       }
   
       const data = await response.json();
-  
+      console.log('hooooy', data.publicUrl)
       if (data.publicUrl) {
         setPreviewImage(data.publicUrl);
         saveAs(data.publicUrl, "transformed-image.jpg");
