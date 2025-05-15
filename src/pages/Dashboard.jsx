@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import imageService from "../services/imageService";
 import { benefits } from "../constants";
-import { Upload, Image as ImageIcon, Plus, X, CloudCog } from "lucide-react";
+import { Upload, Image as ImageIcon, Plus, X, Download } from "lucide-react";
 import bgImage from "../assets/sign_inout/bg1.png";
 
 const Dashboard = () => {
@@ -31,6 +31,23 @@ const Dashboard = () => {
     };
     fetchImages();
   }, []);
+  const handleDownloadOriginal = async (imageUrl, fileName) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName || 'downloaded-image.jpg';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download image');
+    }
+  };
   
   const handleFileChange = (e) => {
     if (e.target.files?.[0]) {
@@ -147,12 +164,20 @@ const Dashboard = () => {
                 return (
                   <div key={image._id} className="group relative">
                     <div className="rounded-lg overflow-hidden bg-gray-800 aspect-square relative">
-                      <button
-                        onClick={() => handleRemoveImage(image._id)}
-                        className="absolute   top-2 right-2 z-10 bg-black opacity-60 rounded-full p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:opacity-80"
-                        title="Remove image">
-                        <X size={16} />
-                      </button>
+                    <div className="absolute top-2 right-2 z-10 flex space-x-2 ">
+                    <button
+                      onClick={() => handleDownloadOriginal(image.url, image.metadata.fileName)}
+                      className="bg-black opacity-60 rounded-full p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:opacity-80"
+                      title="Download image">
+                      <Download size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleRemoveImage(image._id)}
+                      className="bg-black opacity-60 rounded-full p-1 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:opacity-80"
+                      title="Remove image">
+                      <X size={16} />
+                    </button>
+                    </div>
                       
                       <img
                         src={image.url}
