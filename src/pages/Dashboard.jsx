@@ -29,7 +29,6 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-
     fetchImages();
   }, []);
   
@@ -157,12 +156,12 @@ const Dashboard = () => {
                       
                       <img
                         src={image.url}
-                        alt={image.name || "Image"}
+                        alt={image.metadata.fileName || "Image"}
                         className="h-full w-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                         <h3 className="text-white font-medium truncate">
-                          {image.name || "Untitled"}
+                          {image.metadata.fileName || "Untitled"}
                         </h3>
                         <div className="flex space-x-2 mt-2">
                           <Link
