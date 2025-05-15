@@ -8,8 +8,8 @@ export const processImage = (imageBuffer, changes) => {
     
     const currentDir = path.dirname(fileURLToPath(import.meta.url));
     const scriptPath = path.join(currentDir, "../image_processing/main.py");
-
-    const pythonProcess = spawn("python3", [scriptPath, changesJSON]);
+    const venvPython = path.join(currentDir, "./../image_processing/.venv/bin/python3");
+    const pythonProcess = spawn(venvPython, [scriptPath, changesJSON]);
 
     // Send image buffer to Python script via stdin
     pythonProcess.stdin.write(imageBuffer);

@@ -50,6 +50,7 @@ tasks.json
 image-test/
 **/__pycache__
 /venv/
+/.venv/
 
 **/image_test
 *.paw

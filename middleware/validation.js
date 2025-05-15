@@ -90,7 +90,7 @@ const transformationValidation = (req, res, next) => {
   } catch (err) {
     return res.status(500).json({
       error: "JSON validation failed",
-      message: err.message,
+      message: err,
     });
   }
 };
